@@ -7,6 +7,8 @@ import {
   parseSampleHistory,
   SAMPLE_HISTORY_LIMIT,
   sampleWarnings,
+  sampleCatchupFor,
+  sampleObservationAt,
   TRANSCRIPT_PAGE_SIZE,
   visibleSampleSessions,
   visibleSampleWarnings,
@@ -16,6 +18,13 @@ import {
 } from "./history-model";
 
 describe("sample history selectors", () => {
+  it("updates observed activity when persisted catch-up arrives", () => {
+    const state = { ...initialSampleHistory, receivedEvents: sampleCatchupFor("sample-sam") };
+    expect(
+      visibleSampleSessions(state).find((session) => session.id === "sample-sam")?.lastActivityAt,
+    ).toBe("2026-10-03T18:01:00.000Z");
+    expect(sampleObservationAt(state)).toBe("2026-10-03T18:01:00.000Z");
+  });
   it("finds an older deep-link event on the page that contains it", () => {
     const events = getSampleHistoryEvents("sample-sam", initialSampleHistory);
     const initialPageStart = Math.max(0, events.length - TRANSCRIPT_PAGE_SIZE);

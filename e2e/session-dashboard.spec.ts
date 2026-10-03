@@ -40,7 +40,9 @@ test("home shows the labeled sample sessions and accessible session list", async
 
   const sessionList = page.getByRole("region", { name: /sessions/i });
   await expect(sessionList).toBeVisible();
-  await expect(sessionList.getByRole("status")).toContainText(/2\s+sessions?/i);
+  await expect(sessionList.getByRole("status", { name: "Session count" })).toContainText(
+    /2\s+sessions?/i,
+  );
 
   const samCard = page.getByRole("article", { name: samCardName });
   const sriCard = page.getByRole("article", { name: sriCardName });
@@ -111,9 +113,9 @@ test("search filters the session cards by branch name", async ({ page }) => {
 
   await expect(page.getByRole("article", { name: sriCardName })).toBeVisible();
   await expect(page.getByRole("article", { name: samCardName })).toHaveCount(0);
-  await expect(page.getByRole("region", { name: /sessions/i }).getByRole("status")).toContainText(
-    /1\s+session/i,
-  );
+  await expect(
+    page.getByRole("region", { name: /sessions/i }).getByRole("status", { name: "Session count" }),
+  ).toContainText(/1\s+session/i);
   await expect(page.getByRole("button", { name: "Reset filters", exact: true })).toBeVisible();
 });
 

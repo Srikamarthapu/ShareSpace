@@ -18,7 +18,6 @@ import {
   sampleSessions,
   filterSessions,
   formatActivityAge,
-  SAMPLE_SNAPSHOT_AT,
   type Agent,
   type Builder,
 } from "../workspace/session-model";
@@ -26,9 +25,10 @@ import { HistoryNavigation, SampleLabel } from "../history/history-navigation";
 import {
   eventAnchorPageStart,
   getSampleHistoryEvents,
+  sampleObservationAt,
+  sampleObservationLabel,
   isSampleSessionAccessRevoked,
   isSampleSessionDeleted,
-  SAMPLE_PERSON,
   TRANSCRIPT_PAGE_SIZE,
   type HistoryEvent,
   type StreamStatus,
@@ -42,6 +42,7 @@ import {
   useSampleHistory,
 } from "../history/history-store";
 import styles from "../history/history.module.css";
+import { sharingForMember, useWorkspaceControls } from "../workspace-controls/store";
 
 function streamStatusCopy(status: StreamStatus) {
   if (status === "paused") return "Paused · sample updates are not being read.";
@@ -101,8 +102,9 @@ export function Sessions() {
                 </span>
               </p>
               <p className="muted small">
-                Last activity {formatActivityAge(session.lastActivityAt, SAMPLE_SNAPSHOT_AT)} at the
-                Oct 3, 2026 · 10:40 PDT sample snapshot.
+                Last activity{" "}
+                {formatActivityAge(session.lastActivityAt, sampleObservationAt(state))} at the{" "}
+                {sampleObservationLabel(state)} sample snapshot.
               </p>
             </div>
             <ArrowRight size={17} aria-hidden="true" />
@@ -126,7 +128,11 @@ export function Sessions() {
 
 export function SessionDetail({ id }: { id: string }) {
   const { state } = useSampleHistory();
-  const session = sampleSessions.find((item) => item.id === id);
+  const { actor, state: controls } = useWorkspaceControls();
+  const currentOwner = actor?.id === "sri" ? "Sri" : actor?.id === "sam" ? "Sam" : "";
+  const session =
+    visibleSampleSessions(state).find((item) => item.id === id) ??
+    sampleSessions.find((item) => item.id === id);
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState("all");
   const [requestedStart, setRequestedStart] = useState<number | null>(null);
@@ -184,7 +190,7 @@ export function SessionDetail({ id }: { id: string }) {
         requestAnimationFrame(() => {
           const last = allEvents[allEvents.length - 1];
           if (last)
-            document.getElementById(last.id)?.scrollIntoView({ behavior: "smooth", block: "end" });
+            document.getElementById(last.id)?.scrollIntoView({ behavior: "auto", block: "end" });
         });
       } else {
         setRequestedStart(visibleStart);
@@ -302,7 +308,7 @@ export function SessionDetail({ id }: { id: string }) {
       </>
     );
 
-  const isOwnSession = session.owner === SAMPLE_PERSON;
+  const isOwnSession = session.owner === currentOwner;
   const activeSession = session.id === "sample-sri";
   const eventsForCopy = visibleEvents
     .map((event) => event.role + ": " + event.content)
@@ -328,7 +334,7 @@ export function SessionDetail({ id }: { id: string }) {
     requestAnimationFrame(() => {
       const last = allEvents[allEvents.length - 1];
       if (last)
-        document.getElementById(last.id)?.scrollIntoView({ behavior: "smooth", block: "end" });
+        document.getElementById(last.id)?.scrollIntoView({ behavior: "auto", block: "end" });
     });
   }
 
@@ -358,8 +364,8 @@ export function SessionDetail({ id }: { id: string }) {
             " into saved browser history."
         : "No new events. " +
             result.duplicates +
-            " repeated sample delivery" +
-            (result.duplicates === 1 ? " was" : "s were") +
+            " repeated sample " +
+            (result.duplicates === 1 ? "delivery was" : "deliveries were") +
             " deduplicated by stable event ID.",
     );
   }
@@ -383,8 +389,8 @@ export function SessionDetail({ id }: { id: string }) {
             </span>
           </p>
           <p className="muted small">
-            Last activity {formatActivityAge(session.lastActivityAt, SAMPLE_SNAPSHOT_AT)} at the Oct
-            3, 2026 · 10:40 PDT sample snapshot.
+            Last activity {formatActivityAge(session.lastActivityAt, sampleObservationAt(state))} at
+            the {sampleObservationLabel(state)} sample snapshot.
           </p>
         </div>
       </div>
@@ -548,7 +554,11 @@ export function SessionDetail({ id }: { id: string }) {
                       className={styles.dangerButton}
                       type="button"
                       onClick={() => {
-                        deleteOwnSampleSession(id, SAMPLE_PERSON);
+                        const removed = deleteOwnSampleSession(id, currentOwner);
+                        if (!removed)
+                          setActionMessage(
+                            "History could not be removed. Check browser storage access and try again.",
+                          );
                         setConfirmDelete(false);
                       }}
                     >
@@ -571,7 +581,16 @@ export function SessionDetail({ id }: { id: string }) {
           <h2>Session context</h2>
           <dl>
             <dt>Sharing</dt>
-            <dd>Sample browser history only</dd>
+            <dd>
+              {sharingForMember(controls, session.owner.toLowerCase()).privateSessions.includes(id)
+                ? "Private for future capture"
+                : sharingForMember(controls, session.owner.toLowerCase()).sharingPaused
+                  ? "Future sample sharing paused"
+                  : sharingForMember(controls, session.owner.toLowerCase()).sharingEnabled
+                    ? "Future sample sharing enabled"
+                    : "Future sample sharing off"}
+              . Stored sample history remains visible.
+            </dd>
             <dt>Capture</dt>
             <dd>{session.captureNote}</dd>
             <dt>Repository</dt>

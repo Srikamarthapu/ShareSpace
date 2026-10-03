@@ -1,9 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.removeItem("sharespace:sample:history:v1"));
-});
-
 test("session history paginates and a deep event link reveals an older event", async ({ page }) => {
   await page.goto("/sessions/sample-sam");
   await expect(page.getByRole("heading", { level: 1, name: "Saved-college API" })).toBeVisible();
@@ -66,7 +62,7 @@ test("revoked access and deleted history render different states", async ({ page
   await expect(page.getByTestId("access-revoked")).toBeVisible();
   await page.getByRole("button", { name: "Restore sample access" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Saved-college API" })).toBeVisible();
-  await expect(page.locator('[data-history-event="sam-request"]')).toBeVisible();
+  await expect(page.locator('[data-history-event="sam-history-16"]')).toBeVisible();
 
   await page.goto("/sessions/sample-sri");
   await page.getByRole("button", { name: "Delete my sample session" }).click();

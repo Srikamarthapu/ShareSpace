@@ -23,7 +23,8 @@ const outcomeLabels: Record<WarningOutcome, string> = {
 };
 
 function OutcomeBadge({ outcome }: { outcome: WarningOutcome }) {
-  const Icon = outcome === "warning" ? TriangleAlert : outcome === "no_overlap" ? Check : CircleHelp;
+  const Icon =
+    outcome === "warning" ? TriangleAlert : outcome === "no_overlap" ? Check : CircleHelp;
   const className =
     outcome === "warning"
       ? styles.outcome
@@ -67,8 +68,8 @@ function SampleNotice() {
     <div className={styles.sampleBand}>
       <TriangleAlert size={16} aria-hidden="true" />
       <p>
-        These are illustrative outcomes from sample sessions. No live overlap provider or model score is connected;
-        checks never block your work.
+        These are illustrative outcomes from sample sessions. No live overlap provider or model
+        score is connected; checks never block your work.
       </p>
     </div>
   );
@@ -86,7 +87,9 @@ function WarningUnavailable({
   state: ReturnType<typeof useSampleHistory>["state"];
 }) {
   const sessionIds = evidenceSessionIds(warning);
-  const deletedEvidence = warning.evidence.filter((item) => isSampleSessionDeleted(state, item.sessionId));
+  const deletedEvidence = warning.evidence.filter((item) =>
+    isSampleSessionDeleted(state, item.sessionId),
+  );
   const hasDeletedHistory = warningTouchesDeletedHistory(sessionIds, state);
   const hasRevokedHistory = warningTouchesRevokedHistory(sessionIds, state);
 
@@ -100,7 +103,10 @@ function WarningUnavailable({
         </p>
         <div className={styles.crossLinks}>
           {deletedEvidence.map((item, index) => (
-            <Link href={`/sessions/${item.sessionId}#${item.eventId}`} key={`${item.sessionId}:${item.eventId}`}>
+            <Link
+              href={`/sessions/${item.sessionId}#${item.eventId}`}
+              key={`${item.sessionId}:${item.eventId}`}
+            >
               Open removed session {index + 1}
             </Link>
           ))}
@@ -109,7 +115,10 @@ function WarningUnavailable({
     );
   }
 
-  if (hasRevokedHistory || sessionIds.some((sessionId) => isSampleSessionAccessRevoked(state, sessionId))) {
+  if (
+    hasRevokedHistory ||
+    sessionIds.some((sessionId) => isSampleSessionAccessRevoked(state, sessionId))
+  ) {
     return (
       <section className={`${styles.statusPanel} ${styles.revoked}`}>
         <h1>Access revoked</h1>
@@ -148,21 +157,19 @@ export function WarningFeed() {
             return (
               <article className={styles.warningRow} key={warning.id}>
                 {isRevoked ? (
-                  <span className={`${styles.outcome} ${styles.revoked}`}>
-                    Access revoked
-                  </span>
+                  <span className={`${styles.outcome} ${styles.revoked}`}>Access revoked</span>
                 ) : (
                   <OutcomeBadge outcome={warning.outcome} />
                 )}
                 <div className={styles.warningBody}>
                   <h2>{isRevoked ? "Access revoked" : warning.title}</h2>
                   <p>
-                    {isRevoked
-                      ? "Related sample context is no longer available."
-                      : warning.summary}
+                    {isRevoked ? "Related sample context is no longer available." : warning.summary}
                   </p>
                   <p className={styles.warningMeta}>
-                    <time dateTime={warning.happenedAt}>{formatSampleTime(warning.happenedAt)}</time>
+                    <time dateTime={warning.happenedAt}>
+                      {formatSampleTime(warning.happenedAt)}
+                    </time>
                     {" · Sample check"}
                   </p>
                 </div>
@@ -184,8 +191,8 @@ export function WarningFeed() {
         </section>
       )}
       <p className={styles.fixtureFootnote}>
-        Warning, completed no-overlap, and unavailable outcomes are separate sample states. A warning is
-        advisory and never pauses local coding.
+        Warning, completed no-overlap, and unavailable outcomes are separate sample states. A
+        warning is advisory and never pauses local coding.
       </p>
     </div>
   );
@@ -194,7 +201,10 @@ export function WarningFeed() {
 export function WarningDetail({ id }: { id: string }) {
   const { state } = useSampleHistory();
   const warning = sampleWarnings.find((item) => item.id === id);
-  const unavailable = warning ? <WarningUnavailable warning={warning} state={state} /> : null;
+  const unavailable =
+    warning &&
+    (warningTouchesDeletedHistory(evidenceSessionIds(warning), state) ||
+      warningTouchesRevokedHistory(evidenceSessionIds(warning), state));
 
   return (
     <div className={styles.featureStack}>
@@ -212,7 +222,7 @@ export function WarningDetail({ id }: { id: string }) {
           </Link>
         </section>
       ) : unavailable ? (
-        unavailable
+        <WarningUnavailable warning={warning} state={state} />
       ) : (
         <>
           <WarningHeader title={warning.title} description={warning.summary} />
@@ -226,7 +236,10 @@ export function WarningDetail({ id }: { id: string }) {
                 </div>
                 <div className={styles.evidenceList}>
                   {warning.evidence.map((item) => (
-                    <article className={styles.evidenceCard} key={`${item.sessionId}:${item.eventId}`}>
+                    <article
+                      className={styles.evidenceCard}
+                      key={`${item.sessionId}:${item.eventId}`}
+                    >
                       <h3>{item.label}</h3>
                       <blockquote>{item.excerpt}</blockquote>
                       <Link
@@ -244,14 +257,24 @@ export function WarningDetail({ id }: { id: string }) {
             <aside className={styles.sectionCard}>
               <h2>What this result means</h2>
               {warning.outcome === "warning" ? (
-                <p>The sample context suggests related work. Use your usual workflow to coordinate; this warning does not gate or direct coding.</p>
+                <p>
+                  The sample context suggests related work. Use your usual workflow to coordinate;
+                  this warning does not gate or direct coding.
+                </p>
               ) : warning.outcome === "no_overlap" ? (
-                <p>The sample check completed and found no related session. That is different from an unavailable check.</p>
+                <p>
+                  The sample check completed and found no related session. That is different from an
+                  unavailable check.
+                </p>
               ) : (
-                <p>{warning.unavailableReason ?? "The sample check did not complete. No overlap conclusion was recorded."}</p>
+                <p>
+                  {warning.unavailableReason ??
+                    "The sample check did not complete. No overlap conclusion was recorded."}
+                </p>
               )}
               <p className={styles.fixtureFootnote}>
-                {formatSampleTime(warning.happenedAt)} · Sample only. No numeric model score is available.
+                {formatSampleTime(warning.happenedAt)} · Sample only. No numeric model score is
+                available.
               </p>
             </aside>
           </div>

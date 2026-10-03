@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-test("warning feed keeps overlap, completed no-overlap, and unavailable outcomes distinct", async ({ page }) => {
+test("warning feed keeps overlap, completed no-overlap, and unavailable outcomes distinct", async ({
+  page,
+}) => {
   await page.goto("/warnings");
 
   await expect(page.getByRole("heading", { name: "Overlap warnings" })).toBeVisible();
@@ -14,19 +16,21 @@ test("warning feed keeps overlap, completed no-overlap, and unavailable outcomes
 test("warning details link to stable sample events without inventing a score", async ({ page }) => {
   await page.goto("/warnings/college-scope");
 
-  await expect(page.getByRole("heading", { name: "Personal shortlist and saved-college API" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Open sample event: Sri’s request" })).toHaveAttribute(
-    "href",
-    "/sessions/sample-sri#sri-request",
-  );
-  await expect(page.getByRole("link", { name: "Open sample event: Sam’s request" })).toHaveAttribute(
-    "href",
-    "/sessions/sample-sam#sam-request",
-  );
+  await expect(
+    page.getByRole("heading", { name: "Personal shortlist and saved-college API" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Open sample event: Sri’s request" }),
+  ).toHaveAttribute("href", "/sessions/sample-sri#sri-request");
+  await expect(
+    page.getByRole("link", { name: "Open sample event: Sam’s request" }),
+  ).toHaveAttribute("href", "/sessions/sample-sam#sam-request");
   await expect(page.getByText(/no numeric model score is available/i)).toBeVisible();
 });
 
-test("unknown capacity stays unknown and deleting own sample history hides linked warnings", async ({ page }) => {
+test("unknown capacity stays unknown and deleting own sample history hides linked warnings", async ({
+  page,
+}) => {
   await page.goto("/storage");
   await expect(page.getByRole("heading", { name: "History & storage" })).toBeVisible();
   await expect(page.getByText(/not actual storage measurements/i)).toBeVisible();
@@ -36,16 +40,19 @@ test("unknown capacity stays unknown and deleting own sample history hides linke
   await expect(page.getByRole("status").filter({ hasText: "unknown, not zero" })).toBeVisible();
   await expect(page.getByText("Unknown", { exact: true })).toBeVisible();
 
-  await page.getByText("Preview another sample scenario").click();
   await page.getByLabel("Scenario").selectOption("warning");
   await page.getByText("Review deletion").click();
   await page.getByRole("button", { name: "Confirm deletion" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "sample history was removed" })).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: "sample history was removed" }),
+  ).toBeVisible();
 
   await page.goto("/warnings/college-scope");
   await expect(page.getByRole("heading", { name: "History removed" })).toBeVisible();
   await expect(page.getByText("Personal shortlist and saved-college API")).toHaveCount(0);
-  await expect(page.getByText("Save colleges to a personal shortlist and manage each person’s choices.")).toHaveCount(0);
+  await expect(
+    page.getByText("Save colleges to a personal shortlist and manage each person’s choices."),
+  ).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Open removed session 1" })).toHaveAttribute(
     "href",
     "/sessions/sample-sri#sri-request",
@@ -74,6 +81,10 @@ test("revoked warning context shows no cached title or excerpts", async ({ page 
 
   await expect(page.getByRole("heading", { name: "Access revoked" })).toBeVisible();
   await expect(page.getByText("Personal shortlist and saved-college API")).toHaveCount(0);
-  await expect(page.getByText("Both sample requests mention per-person saved-college storage and management.")).toHaveCount(0);
-  await expect(page.getByText("Save colleges to a personal shortlist and manage each person’s choices.")).toHaveCount(0);
+  await expect(
+    page.getByText("Both sample requests mention per-person saved-college storage and management."),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("Save colleges to a personal shortlist and manage each person’s choices."),
+  ).toHaveCount(0);
 });

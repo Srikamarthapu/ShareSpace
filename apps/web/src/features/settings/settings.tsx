@@ -16,6 +16,7 @@ import {
   Users,
 } from "lucide-react";
 import { Avatar } from "@/components/ui";
+import { resetSampleHistory } from "@/features/history/history-store";
 import { useWorkspace } from "@/components/workspace-provider";
 import {
   samplePrivateSessionOptions,
@@ -70,11 +71,14 @@ export function Settings() {
 
   function resetSamples() {
     workspace.reset();
-    controls.reset();
+    const controlsReset = controls.reset();
+    const historyReset = resetSampleHistory();
     setConfirmReset(false);
     setCopyStatus("");
     setNotice(
-      "Sample tasks, team controls, pairing and sharing preferences were reset in this browser.",
+      controlsReset && historyReset
+        ? "Sample team controls, devices, sharing preferences, and session history were reset in this browser."
+        : "Some sample data could not be reset. Check browser storage access and try again.",
     );
   }
 
@@ -444,8 +448,8 @@ export function Settings() {
                 </li>
               </ul>
               <p>
-                This is a product disclosure example. The sample does not capture, upload, redact,
-                or store session content.
+                This is a product disclosure example. The sample does not capture or upload real
+                session content.
               </p>
             </div>
             <p className="controls-permission-note">

@@ -179,10 +179,41 @@ export function parseSampleHistory(raw: string | null): SampleHistoryState {
 export function visibleSampleSessions(state: SampleHistoryState): DashboardSession[] {
   const deleted = new Set(state.deletedSessionIds);
   const revoked = new Set(state.revokedSessionIds);
-  return sampleSessions.filter((session) => {
-    const id = session.id as (typeof fixtureSessionIds)[number];
-    return !deleted.has(id) && !revoked.has(id);
-  });
+  return sampleSessions
+    .filter((session) => {
+      const id = session.id as (typeof fixtureSessionIds)[number];
+      return !deleted.has(id) && !revoked.has(id);
+    })
+    .map((session) => {
+      const observed = state.receivedEvents.filter((event) => event.sessionId === session.id);
+      const lastActivityAt = new Date(
+        Math.max(
+          Date.parse(session.lastActivityAt),
+          ...observed.map((event) => Date.parse(event.occurredAt)),
+        ),
+      ).toISOString();
+      return { ...session, lastActivityAt };
+    });
+}
+
+export function sampleObservationAt(state: SampleHistoryState): string {
+  return new Date(
+    Math.max(
+      Date.parse(SAMPLE_HISTORY_SNAPSHOT),
+      ...state.receivedEvents.map((event) => Date.parse(event.occurredAt)),
+    ),
+  ).toISOString();
+}
+
+export function sampleObservationLabel(state: SampleHistoryState): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/Los_Angeles",
+    timeZoneName: "short",
+  }).format(new Date(sampleObservationAt(state)));
 }
 
 export function isSampleSessionDeleted(state: SampleHistoryState, sessionId: string): boolean {
@@ -364,7 +395,7 @@ export type StorageScenario = {
   cleanupMb?: number;
 };
 
-export const sampleStorageScenarios: readonly StorageScenario[] = [
+export const sampleStorageScenarios: readonly [StorageScenario, ...StorageScenario[]] = [
   {
     id: "warning",
     label: "Per-person warning",

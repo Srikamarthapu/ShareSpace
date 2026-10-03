@@ -5,7 +5,6 @@ import { AlertCircle, ArrowRight, Check, Database, ShieldCheck, TriangleAlert } 
 import {
   isSampleSessionAccessRevoked,
   isSampleSessionDeleted,
-  SAMPLE_PERSON,
   sampleStorageScenarios,
   type StorageScenario,
   type StorageScenarioId,
@@ -14,6 +13,7 @@ import { deleteOwnSampleSession, useSampleHistory } from "@/features/history/his
 import { HistoryNavigation, SampleLabel } from "@/features/history/history-navigation";
 import { sampleSessions } from "@/features/workspace/session-model";
 import styles from "@/features/history/history.module.css";
+import { useWorkspaceControls } from "@/features/workspace-controls/store";
 
 const formatMb = (value: number | null) => (value === null ? "Unknown" : `${value.toFixed(1)} MB`);
 
@@ -23,13 +23,17 @@ function ScenarioState({ scenario }: { scenario: StorageScenario }) {
   const databaseWarning = scenario.databaseMb !== null && scenario.databaseMb >= 350;
   const projectedPersonWarning = scenario.projectedPersonMb >= 40;
 
-  if (scenario.id === "unknown" || scenario.databaseMb === null || scenario.projectedDatabaseMb === null) {
+  if (
+    scenario.id === "unknown" ||
+    scenario.databaseMb === null ||
+    scenario.projectedDatabaseMb === null
+  ) {
     return (
       <div className={`${styles.scenarioState} ${styles.unknown}`} role="status">
         <AlertCircle size={16} aria-hidden="true" />
         <p>
-          Database capacity is unknown, not zero. In a live workspace, new session-content writes stay
-          paused until fresh capacity confirms safe headroom.
+          Database capacity is unknown, not zero. In a live workspace, new session-content writes
+          stay paused until fresh capacity confirms safe headroom.
         </p>
       </div>
     );
@@ -40,9 +44,10 @@ function ScenarioState({ scenario }: { scenario: StorageScenario }) {
       <div className={`${styles.scenarioState} ${styles.paused}`} role="status">
         <AlertCircle size={16} aria-hidden="true" />
         <p>
-          Sample uploads are paused: projected shared database use is {formatMb(scenario.projectedDatabaseMb)},
-          above the 400 MB pause boundary. Current use is {formatMb(scenario.databaseMb)}. Cleanup can start at
-          350 MB; writes resume only after safe headroom is verified. Local coding continues.
+          Sample uploads are paused: projected shared database use is{" "}
+          {formatMb(scenario.projectedDatabaseMb)}, above the 400 MB pause boundary. Current use is{" "}
+          {formatMb(scenario.databaseMb)}. Cleanup can start at 350 MB; writes resume only after
+          safe headroom is verified. Local coding continues.
         </p>
       </div>
     );
@@ -53,8 +58,8 @@ function ScenarioState({ scenario }: { scenario: StorageScenario }) {
       <div className={styles.scenarioState} role="status">
         <Check size={16} aria-hidden="true" />
         <p>
-          Sample cleanup removed older inactive history and brought accounted content to {formatMb(scenario.cleanupMb)},
-          below the 30 MB target. Active sessions were protected.
+          Sample cleanup removed older inactive history and brought accounted content to{" "}
+          {formatMb(scenario.cleanupMb)}, below the 30 MB target. Active sessions were protected.
         </p>
       </div>
     );
@@ -77,7 +82,9 @@ function ScenarioState({ scenario }: { scenario: StorageScenario }) {
   return (
     <div className={styles.scenarioState} role="status">
       <ShieldCheck size={16} aria-hidden="true" />
-      <p>Sample capacity is below the warning boundaries. This is not a live storage measurement.</p>
+      <p>
+        Sample capacity is below the warning boundaries. This is not a live storage measurement.
+      </p>
     </div>
   );
 }
@@ -123,14 +130,19 @@ function StorageHeader() {
 
 export function Storage() {
   const { state } = useSampleHistory();
+  const { actor } = useWorkspaceControls();
+  const currentOwner = actor?.id === "sri" ? "Sri" : actor?.id === "sam" ? "Sam" : "";
   const [scenarioId, setScenarioId] = useState<StorageScenarioId>("warning");
   const [deleteStatus, setDeleteStatus] = useState("");
-  const scenario = sampleStorageScenarios.find((item) => item.id === scenarioId) ?? sampleStorageScenarios[0];
-  const ownSessions = sampleSessions.filter((session) => session.owner === SAMPLE_PERSON);
+  const scenario =
+    sampleStorageScenarios.find((item) => item.id === scenarioId) ?? sampleStorageScenarios[0];
+  const ownSessions = sampleSessions.filter((session) => session.owner === currentOwner);
 
   function removeOwnSampleHistory(sessionId: string) {
-    if (deleteOwnSampleSession(sessionId, SAMPLE_PERSON)) {
-      setDeleteStatus("Your sample history was removed from this browser. Related warning excerpts are hidden.");
+    if (deleteOwnSampleSession(sessionId, currentOwner)) {
+      setDeleteStatus(
+        "Your sample history was removed from this browser. Related warning excerpts are hidden.",
+      );
     } else {
       setDeleteStatus("The sample history could not be removed from this browser.");
     }
@@ -143,7 +155,8 @@ export function Storage() {
       <div className={styles.sampleBand}>
         <Database size={16} aria-hidden="true" />
         <p>
-          Sample scenarios only. The values below are not actual storage measurements, and no live cleanup or upload pause is connected.
+          Sample scenarios only. The values below are not actual storage measurements, and no live
+          cleanup or upload pause is connected.
         </p>
       </div>
 
@@ -169,13 +182,19 @@ export function Storage() {
               <strong>{formatMb(scenario.databaseMb)}</strong>
               <span>Projected {formatMb(scenario.projectedDatabaseMb)}</span>
               {scenario.databaseMb === null ? (
-                <p className={styles.fixtureFootnote}>Capacity is unverified; unknown is not treated as 0 MB.</p>
+                <p className={styles.fixtureFootnote}>
+                  Capacity is unverified; unknown is not treated as 0 MB.
+                </p>
               ) : (
                 <StorageMeter
                   label="Current sample database size against the 400 MB pause boundary"
                   value={scenario.databaseMb}
                   max={400}
-                  variant={scenario.projectedDatabaseMb !== null && scenario.projectedDatabaseMb >= 400 ? styles.paused : undefined}
+                  variant={
+                    scenario.projectedDatabaseMb !== null && scenario.projectedDatabaseMb >= 400
+                      ? styles.paused
+                      : undefined
+                  }
                 />
               )}
             </div>
@@ -208,22 +227,45 @@ export function Storage() {
           <h2>Rolling history boundaries</h2>
           <p>Starting v1 thresholds from the product specification.</p>
           <ul className={styles.thresholdList}>
-            <li><span>Per-person content limit</span><strong>50 MB</strong></li>
-            <li><span>Projected cleanup warning</span><strong>40 MB</strong></li>
-            <li><span>Cleanup target</span><strong>30 MB</strong></li>
-            <li><span>Actual database warning</span><strong>350 MB</strong></li>
-            <li><span>Projected write-pause boundary</span><strong>400 MB</strong></li>
+            <li>
+              <span>Per-person content limit</span>
+              <strong>50 MB</strong>
+            </li>
+            <li>
+              <span>Projected cleanup warning</span>
+              <strong>40 MB</strong>
+            </li>
+            <li>
+              <span>Cleanup target</span>
+              <strong>30 MB</strong>
+            </li>
+            <li>
+              <span>Actual database warning</span>
+              <strong>350 MB</strong>
+            </li>
+            <li>
+              <span>Projected write-pause boundary</span>
+              <strong>400 MB</strong>
+            </li>
           </ul>
           <p className={styles.fixtureFootnote}>
-            Cleanup affects ShareSpace copies only. It protects active sessions and never removes another person’s history to satisfy an individual allowance.
+            Cleanup affects ShareSpace copies only. It protects active sessions and never removes
+            another person’s history to satisfy an individual allowance.
           </p>
         </aside>
       </div>
 
       <section className={styles.storageCard} aria-labelledby="own-history-title">
         <h2 id="own-history-title">Your stored sample history</h2>
-        <p>Deletion controls apply only to Sri’s own sample session, saved in this browser.</p>
-        {deleteStatus && <p className={styles.fixtureFootnote} role="status">{deleteStatus}</p>}
+        <p>Deletion controls apply only to your own sample sessions, saved in this browser.</p>
+        {ownSessions.length === 0 && (
+          <p className={styles.fixtureFootnote}>This sample member has no session history yet.</p>
+        )}
+        {deleteStatus && (
+          <p className={styles.fixtureFootnote} role="status">
+            {deleteStatus}
+          </p>
+        )}
         <div className={styles.sessionStorageList}>
           {ownSessions.map((session) => {
             const deleted = isSampleSessionDeleted(state, session.id);
@@ -244,14 +286,18 @@ export function Storage() {
               <div className={styles.sessionStorageRow} key={session.id}>
                 <div>
                   <strong>{session.title}</strong>
-                  <span>{session.agent} · {session.repository} · Your sample history</span>
+                  <span>
+                    {session.agent} · {session.repository} · Your sample history
+                  </span>
                 </div>
                 <details className={styles.reviewDisclosure}>
                   <summary>Review deletion</summary>
                   <div className={styles.deletePanel}>
                     <h3>Delete this sample history?</h3>
                     <p>
-                      This removes Sri’s stored sample transcript from this browser and hides warnings that cite it. It does not change Sam’s history, a real workspace, or any local coding session.
+                      This removes your stored sample transcript from this browser and hides
+                      warnings that cite it. It does not change your teammate’s history, a real
+                      workspace, or any local coding session.
                     </p>
                     <button
                       className={styles.dangerButton}
@@ -268,7 +314,8 @@ export function Storage() {
           })}
         </div>
         <p className={styles.fixtureFootnote}>
-          Teammate Sam’s session is not shown in this deletion control. The button also checks ownership before removing a sample record.
+          Teammate Sam’s session is not shown in this deletion control. The button also checks
+          ownership before removing a sample record.
         </p>
       </section>
     </div>
