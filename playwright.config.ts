@@ -28,9 +28,11 @@ export default defineConfig({
   ...(managesLocalServer
     ? {
         webServer: {
-          // Avoid native Turbopack persistence failures on external macOS volumes.
-          command:
-            "npm run dev --workspace @workspace/web -- --webpack --hostname 127.0.0.1 --port 3101",
+          // CI builds first. Test that immutable output so dev reloads cannot
+          // interrupt browser assertions or accessibility scans.
+          command: process.env.CI
+            ? "npm run start --workspace @workspace/web -- --hostname 127.0.0.1 --port 3101"
+            : "npm run dev --workspace @workspace/web -- --webpack --hostname 127.0.0.1 --port 3101",
           url: baseURL,
           reuseExistingServer: !process.env.CI,
           timeout: 120_000,
