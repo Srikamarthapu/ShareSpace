@@ -1,7 +1,33 @@
-'use client';
-import { useActionState } from 'react';
-import { signIn } from './actions';
+"use client";
+import { useActionState } from "react";
+import { signIn } from "./actions";
 export function LoginForm() {
-  const [state, action, pending] = useActionState(signIn, { error: '' });
-  return <form action={action}><label htmlFor="email">Email</label><input id="email" type="email" name="email" required autoComplete="email" maxLength={254} /><label htmlFor="password">Password</label><input id="password" type="password" name="password" required autoComplete="current-password" maxLength={256} />{state.error && <p className="error-text" role="alert">{state.error}</p>}<button className="button button-primary" disabled={pending} type="submit">{pending ? 'Signing in…' : 'Sign in'}</button><p className="muted small section-spacing">Use an account in your configured Supabase project. Account creation and invitations are the next onboarding milestone.</p></form>;
+  const [state, action, pending] = useActionState(signIn, { error: "" });
+  return (
+    <form action={action}>
+      <label htmlFor="email">Email</label>
+      <input id="email" type="email" name="email" required autoComplete="email" maxLength={254} />
+      <label htmlFor="password">Password</label>
+      <input
+        id="password"
+        type="password"
+        name="password"
+        required
+        autoComplete="current-password"
+        maxLength={256}
+      />
+      {state.error && (
+        <p className="error-text" role="alert">
+          {state.error}
+        </p>
+      )}
+      <button className="button button-primary" disabled={pending} type="submit">
+        {pending ? "Signing in…" : "Sign in"}
+      </button>
+      <p className="muted small section-spacing">
+        Use an account in your configured Supabase project. Account creation and invitations are the
+        next onboarding milestone.
+      </p>
+    </form>
+  );
 }
