@@ -1,8 +1,12 @@
 // Authorization always resumes in /live; caller-provided return URLs are ignored.
 export function authCallbackInput(
   url: URL,
-): { code: string } | { error: "cancelled" | "callback" } {
-  if (url.searchParams.has("error")) return { error: "cancelled" };
+): { code: string } | { error: "cancelled" | "callback" | "unavailable" } {
+  if (url.searchParams.has("error")) {
+    return {
+      error: url.searchParams.get("error") === "access_denied" ? "cancelled" : "unavailable",
+    };
+  }
   const code = url.searchParams.get("code");
   if (!code || code.length > 2048 || /[\s\u0000-\u001f]/u.test(code)) return { error: "callback" };
   return { code };

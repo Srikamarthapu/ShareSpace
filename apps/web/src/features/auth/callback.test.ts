@@ -17,6 +17,9 @@ describe("OAuth callback boundary", () => {
     });
   });
   it("displays only known messages, never provider-supplied error descriptions", () => {
+    expect(authCallbackInput(new URL("https://app.test/auth/callback?error=server_error"))).toEqual(
+      { error: "unavailable" },
+    );
     expect(
       authCallbackInput(new URL("https://app.test/auth/callback?error=access_denied&code=abc")),
     ).toEqual({ error: "cancelled" });

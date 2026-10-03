@@ -47,8 +47,8 @@ export default async function Page() {
             ))}
           </ul>
         ) : null}
-        <Link className="button button-secondary" href="/setup">
-          Try setup in the sample workspace
+        <Link className="button button-secondary" href="/">
+          Explore the sample workspace
         </Link>
       </section>
       <div className="section-spacing">
