@@ -2,7 +2,7 @@
 
 This note records the minimum contract Teammate 1 needs from Teammate 2 to connect browser flows to the ShareSpace v1 backend. It derives requirements from the [PRD](../PRD.md) and [ownership split](WORK_SPLIT.md); it does not choose endpoint names, payload shapes, or database types.
 
-The merged teammate 2 branch now supplies a draft in [CONTRACT.md](CONTRACT.md), with schemas and fixtures in `packages/core/src/v1.ts` and `v1-fixtures.ts`. That is a shared contract foundation, not a deployed schema or endpoint implementation. Its sample-to-contract differences remain explicit; the browser has not been switched to live endpoints by the merge.
+The merged teammate 2 branch now supplies a draft in [CONTRACT.md](CONTRACT.md), with schemas and fixtures in `packages/core/src/v1.ts` and `v1-fixtures.ts`, plus the v1 database migration and access tests in `supabase/`. Endpoint implementation and cloud deployment remain separate work. Its sample-to-contract differences remain explicit; the browser has not been switched to live endpoints by the merge.
 
 ## Current boundary
 
@@ -10,7 +10,8 @@ The merged teammate 2 branch now supplies a draft in [CONTRACT.md](CONTRACT.md),
 - Privileged mutations, ingestion, and Jev execution belong in Supabase Edge Functions. Teammate 1 must not recreate those operations or membership policy in Next.js routes.
 - `/live` and `GET /api/projects` currently provide only authenticated project listing (`id`, `name`). `POST /api/agent/events` returns `503 DEVICE_INGESTION_NOT_READY`; `POST /api/agent/preflight` returns `503 PREFLIGHT_NOT_READY`.
 - `packages/core/src/contracts.ts` defines a bounded event envelope and batch, but not read pagination, acknowledgements, Realtime recovery, pairing, warning, or storage contracts. Its preflight types describe task/source evidence and cannot stand in for the PRD's session-overlap warning result.
-- `supabase/schema.sql` is an unapplied draft. The connected project had no public tables, functions, or migrations on October 3, 2026. UI flows therefore remain fixture-backed until a reviewed backend contract and deployment exist.
+- `supabase/migrations/20261003212254_v1_schema.sql` replaces the old starter draft. The connected cloud project had no public tables, functions, or migrations at the October 3 inspection; this merge does not deploy it. UI flows remain fixture-backed until the matching authorized backend is available.
+- `ingest_id` is allocation order, not commit order. Reconnect recovery must account for concurrent late commits; see [CONTRACT.md](CONTRACT.md). The read-only RLS tests do not prove that recovery behavior.
 
 ## Contract decisions needed before wiring UI
 

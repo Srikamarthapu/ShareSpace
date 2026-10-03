@@ -40,4 +40,6 @@ supabase db advisors --local
 
 ## Verified
 
-On October 3, 2026, `supabase db reset --local` applied the migration, and `supabase test db --local` passed 24 access tests. `supabase db advisors --local` reported no warnings or errors. The migration has not been applied to the cloud project yet.
+The teammate 2 checkpoint records that on October 3, 2026, `supabase db reset --local` applied the migration, `supabase test db --local` passed 24 access tests, and `supabase db advisors --local` reported no warnings or errors.
+
+The combined-branch verification independently applied the migration and passed all 24 pgTAP assertions in an isolated Supabase PostgreSQL 17.6.1.134 container. Test identities now set matching individual/JSON JWT claims for compatibility with both `auth.uid()` helper variants; anon clears both. The local CLI launchers exited 137, so that verification did not run the CLI or advisors. See [MERGE_VERIFICATION.md](MERGE_VERIFICATION.md) for scope and limitations. This merge does not apply the migration to the cloud project.

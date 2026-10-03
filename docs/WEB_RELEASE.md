@@ -50,6 +50,6 @@ Hosted smoke verification used authenticated `vercel curl` requests with protect
 
 ## Integration gate
 
-`WEB_BACKEND_HANDOFF.md` lists the missing teammate 2 contracts. Do not deploy the legacy draft SQL merely to make a screen look connected. Review the v1 schema and functions first, then connect authenticated reads, authorized Realtime recovery, and server mutations. Finally run the PRD's real two-account, two-agent walkthrough.
+`WEB_BACKEND_HANDOFF.md` lists the integration requirements and points to the merged draft contract. The v1 migration replaces the legacy draft SQL; review its rollout and the matching functions before cloud deployment, then connect authenticated reads, authorized Realtime recovery, and server mutations. Finally run the PRD's real two-account, two-agent walkthrough.
 
-The GitHub workflow runs lint, workspace types, unit tests, a production build, and desktop/mobile Chromium workflows. It does not deploy or merge `main`. Stripe remains outside the v1 release path.
+The GitHub workflow runs lint, workspace types, unit tests, a production build, and desktop/mobile Chromium workflows against that build. Local `npm run test:e2e` still starts the development server unless an existing server is supplied; `CI=1` selects production and requires `npm run build` first. It does not deploy or merge `main`. Stripe remains outside the v1 release path.

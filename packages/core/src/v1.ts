@@ -455,7 +455,7 @@ export const ingestEventSchema = withinBytes(
 export const eventRowSchema = eventUnion({
   id: uuidSchema,
   team_id: uuidSchema,
-  /** Server insert order. Use it as the catch-up cursor after a Realtime gap. */
+  /** Allocation order, not commit order. Exclusive cursor reads alone can miss late commits. */
   ingest_id: z.number().int().positive(),
   received_at: isoTimestampSchema,
 });

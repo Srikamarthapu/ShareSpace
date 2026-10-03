@@ -40,7 +40,7 @@ Only a hash of the device token is stored. Device rows that team members can rea
 - `session_events` holds one row per event. Each `kind` has a fixed `payload` shape. `eventRole(kind)` gives the transcript role: `user`, `assistant`, `tool` or `system`. A `tool.started` event with no matching `tool.completed` (same `tool_call_id`) shows as `running`.
 - **Display order:** `(sequence, occurred_at, id)`. `sequence` comes from the adapter, so a late retry appears where it happened, not as new work.
 - **Paging:** page by `sequence`. The default page is 50 events and the maximum is 100.
-- **Live updates:** subscribe with Realtime to `sessions`, `session_events`, `overlap_checks` and `cleanup_notices`. After any subscribe or reconnect, read `session_events` where `ingest_id > last seen ingest_id` to recover anything you missed. Realtime is only a hint, and the table is the truth.
+- **Live updates:** subscribe with Realtime to `sessions`, `session_events`, `overlap_checks` and `cleanup_notices`. Realtime is only a hint, and persisted reads are the truth. `ingest_id` is sequence allocation order, not commit order: a lower ID can become visible after a higher one. An exclusive `ingest_id > last seen ingest_id` query alone can therefore miss committed events. Before wiring live recovery, the ingest/read implementation must settle a commit-safe cursor or persisted reconciliation strategy and test concurrent out-of-order commits. This migration does not yet provide that guarantee.
 
 ## Ingest (`ingest`, adapter)
 

@@ -32,6 +32,7 @@ Turbopack disk persistence is disabled because its native cache failed on this e
 | Sponsor setup | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) |
 | Implementation gates | [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) |
 | Snapshot status | [`docs/STATUS.md`](docs/STATUS.md) |
+| Combined branch verification | [`docs/MERGE_VERIFICATION.md`](docs/MERGE_VERIFICATION.md) |
 
 ## Commands
 

@@ -120,7 +120,7 @@ create table public.session_events (
   id uuid primary key,
   session_id uuid not null,
   team_id uuid not null,
-  -- Server insert order; the browser's catch-up cursor after a Realtime gap.
+  -- Allocation order, not commit order; not sufficient as the sole reconnect cursor.
   ingest_id bigint generated always as identity unique,
   sequence integer not null check (sequence >= 0),
   kind text not null check (
