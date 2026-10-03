@@ -1,4 +1,9 @@
+import { fileURLToPath } from 'node:url';
+import { loadEnvConfig } from '@next/env';
 import type { NextConfig } from 'next';
+
+// One env file for the whole repo: load <repo root>/.env before Next reads its own.
+loadEnvConfig(fileURLToPath(new URL('../..', import.meta.url)));
 
 const config: NextConfig = {
   transpilePackages: ['@workspace/core'],

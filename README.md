@@ -47,7 +47,7 @@ Dependencies are pinned in package manifests and `package-lock.json`. Browser E2
 
 Supabase auth/data, Vercel deployment configuration, and Stripe sandbox Checkout/webhook foundations are included. All Stripe/billing work is deferred until after v1; the existing scaffold is outside the first-version acceptance path. Google AI Studio/Gemini is optional. The PRD’s Jev decision boundary remains separate; no Jev API or successful provider result is invented.
 
-Copy `apps/web/.env.example` to `apps/web/.env.local` only when configuring real services. **Never commit that file, real keys, device credentials, or shared transcripts.** Cloud resources have not been provisioned by this snapshot. Stripe is restricted to sandbox keys and sandbox receipts; no paid plan or production entitlement is implemented.
+Copy `.env.example` to `.env` (repo root) only when configuring real services. **Never commit that file, real keys, device credentials, or shared transcripts.** Cloud resources have not been provisioned by this snapshot. Stripe is restricted to sandbox keys and sandbox receipts; no paid plan or production entitlement is implemented.
 
 ## Scope and trust
 
