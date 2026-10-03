@@ -170,7 +170,10 @@ test("mobile dashboard fits a 390px viewport without horizontal scrolling", asyn
 const supportingRoutes = ["/sessions", "/sessions/sample-sri", "/connect", "/settings", "/login"];
 
 for (const route of supportingRoutes) {
-  test(`${route} keeps its heading, dark theme, and accessible layout`, async ({ page }) => {
+  test(`${route} respects a dark system preference and keeps its accessible layout`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
     await page.goto(route);
 
     await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
