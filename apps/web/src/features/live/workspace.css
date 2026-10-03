@@ -104,16 +104,20 @@
   border-radius: 6px;
   margin-bottom: 20px;
 }
-.live-toggle {
+.live-workspace .live-toggle {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   min-height: 38px;
+  margin: 0;
 }
-.live-toggle input {
+.live-toggle input[type="checkbox"] {
+  flex: 0 0 17px;
   width: 17px;
   height: 17px;
-  margin-top: 4px;
+  min-height: 17px;
+  margin: 0;
+  padding: 0;
   accent-color: var(--primary);
 }
 .live-pairing {
