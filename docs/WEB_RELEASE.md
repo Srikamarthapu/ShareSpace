@@ -26,7 +26,8 @@ An unknown provider status permits a retry; a confirmed disabled provider is sho
 - Root directory: `apps/web`; Next.js framework; project Node setting: `22.x`.
 - `apps/web/vercel.json` installs and builds from the monorepo root. Keep the workspace packages available outside the app root.
 - `.vercelignore` excludes credentials, macOS resource forks, generated output, local state, and test artifacts. A dry-run upload manifest must contain none of those files.
-- Only preview environment variables have been configured. No production deployment or production environment is claimed.
+- Only preview environment variables have been configured. The active protected preview is [sharespace-qh2lugwie](https://sharespace-qh2lugwie-swis-projects-066d8b1d.vercel.app), deployment `dpl_4hAUCH5BTEKkw7mkQCKnXKYworwu`, source `a119f37`.
+- The first deployment was classified as production despite the explicit preview target. A subsequent deployment correctly reported Preview (`target: null`, `productionUrl: null`); the unintended first deployment `dpl_J4NQbYxbnr5ovtudCpsFa2WNoyba` was removed. There is no production release from this work. Verify the returned environment on every deployment, especially for a new project.
 
 From the linked repository root, the verified CLI version and explicit preview target are:
 
@@ -36,6 +37,8 @@ npm exec --yes --package=vercel@62.2.0 -- vercel deploy --target preview --scope
 ```
 
 Keep Vercel deployment protection enabled. Inspect deployment build logs and test the actual preview after deployment; a local build is not hosted verification. Record the verified URL and results in `T1_PROGRESS.md`.
+
+Hosted smoke verification used authenticated `vercel curl` requests with protection still enabled: `/` and `/login` returned 200 with expected content, and signed-out `/live` emitted the framework redirect to `/login`. GitHub OAuth was correctly shown as disabled. These checks do not replace an interactive hosted login or the two-account walkthrough.
 
 ## Integration gate
 
