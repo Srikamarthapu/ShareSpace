@@ -1,10 +1,57 @@
-import Link from 'next/link';
-import { Layers2, ArrowLeft, Settings2 } from 'lucide-react';
-import { LoginForm } from '@/features/auth/login-form';
-import { supabaseConfig } from '@/lib/supabase/config';
-export const metadata = { title: 'Sign in' };
-export const dynamic = 'force-dynamic';
-export default function Page() {
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { LoginForm } from "@/features/auth/login-form";
+import { GithubLogin } from "@/features/auth/github-login";
+import { githubAvailability } from "@/features/auth/availability";
+import { loginErrorMessage } from "@/features/auth/callback";
+import { supabaseConfig } from "@/lib/supabase/config";
+export const metadata = { title: "Sign in" };
+export const dynamic = "force-dynamic";
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const configured = !!supabaseConfig();
-  return <main className="login-panel"><Link href="/" className="brand"><span className="brand-mark"><Layers2 size={22} aria-hidden="true" /></span>ShareSpace</Link><h1>{configured ? 'Your real workspace.' : 'Ready when you are.'}</h1><p>{configured ? 'Sign in to access project records authorized by Supabase.' : 'The sample runs without credentials. Connect Supabase to begin building with real accounts.'}</p>{configured ? <LoginForm /> : <div className="setup-panel"><Settings2 size={24} className="muted" aria-hidden="true" /><h2 className="section-spacing">Configure Supabase</h2><ol className="gate-list"><li>Copy <code>apps/web/.env.example</code> to <code>apps/web/.env.local</code>.</li><li>Add your project URL and publishable key.</li><li>Apply the migrations and restart the app.</li></ol><p className="muted small">Follow the complete local setup in the repository README and docs/DATABASE.md.</p></div>}<Link href="/" className="text-link"><ArrowLeft size={14} aria-hidden="true" />Back to the sample workspace</Link></main>;
+  const availability = configured ? await githubAvailability() : "disabled";
+  const error = loginErrorMessage((await searchParams).error);
+  return (
+    <main className="login-panel">
+      <Link href="/" className="brand">
+        ShareSpace
+      </Link>
+      <h1>Sign in to ShareSpace</h1>
+      <p>Your team’s shared context, in one place.</p>
+      {error && (
+        <p className="error-text" role="alert">
+          {error}
+        </p>
+      )}
+      {configured ? (
+        <>
+          <GithubLogin availability={availability} />
+          <details className="section-spacing">
+            <summary>Use an existing email account</summary>
+            <LoginForm />
+          </details>
+        </>
+      ) : (
+        <div className="setup-panel">
+          <h2>Sign-in is not configured</h2>
+          <p>
+            The project administrator needs to connect Supabase before real accounts are available.
+            You can explore the sample workspace in the meantime.
+          </p>
+        </div>
+      )}
+      <p className="muted small section-spacing">
+        Signing in does not share your repository or agent sessions. You choose what to share after
+        setup.
+      </p>
+      <Link href="/" className="text-link">
+        <ArrowLeft size={14} aria-hidden="true" />
+        Explore the sample workspace
+      </Link>
+    </main>
+  );
 }
