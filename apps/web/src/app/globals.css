@@ -1125,9 +1125,9 @@ label:not(.search-field, .action-option, .sr-only) {
     display: none;
   }
   .main-navigation {
-    flex-direction: row;
-    gap: 6px;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 10px;
   }
   .nav-item {
     border-radius: 0;

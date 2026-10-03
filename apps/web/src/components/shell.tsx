@@ -11,19 +11,25 @@ import {
   MessageSquareText,
   Plug,
   Settings2,
+  Bell,
+  Database,
 } from "lucide-react";
 import { useWorkspace } from "./workspace-provider";
+import { useWorkspaceControls } from "@/features/workspace-controls/store";
 
 const navigation = [
   { href: "/", label: "Workspace", icon: LayoutGrid },
   { href: "/sessions", label: "Sessions", icon: MessageSquareText },
+  { href: "/warnings", label: "Warnings", icon: Bell },
   { href: "/connect", label: "Connections", icon: Plug },
+  { href: "/storage", label: "Storage", icon: Database },
   { href: "/settings", label: "Settings", icon: Settings2 },
 ];
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { notice } = useWorkspace();
+  const { state: controls, actor } = useWorkspaceControls();
   const current = navigation.find((item) =>
     item.href === "/" ? pathname === "/" : pathname.startsWith(item.href),
   );
@@ -58,16 +64,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
             aria-current={pathname === "/guide" ? "page" : undefined}
           >
             <BookOpen size={17} strokeWidth={1.6} aria-hidden="true" />
-            Build guide
+            Workspace guide
             <ArrowUpRight size={13} className="end-icon" aria-hidden="true" />
           </Link>
           <div className="profile">
             <span className="avatar avatar-sri avatar-small" aria-hidden="true">
-              SK
+              {actor?.name.slice(0, 2).toUpperCase() ?? "SS"}
             </span>
             <div>
-              <strong>Sri’s workspace</strong>
-              <span>Sample account</span>
+              <strong>{actor?.name ?? "Sample"}’s workspace</strong>
+              <span>Sample {actor?.role ?? "account"}</span>
             </div>
           </div>
         </div>
@@ -75,9 +81,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <div className="main-shell">
         <header className="topbar">
           <div className="breadcrumb">
-            <strong>College Compass</strong>
+            <strong>{controls.teamName}</strong>
             <ChevronRight size={14} aria-hidden="true" />
-            <span>{current?.label ?? (pathname === "/guide" ? "Build guide" : "Workspace")}</span>
+            <span>
+              {current?.label ?? (pathname === "/guide" ? "Workspace guide" : "Workspace")}
+            </span>
           </div>
           <div className="workspace-mode">
             <span className="sample-indicator">Sample workspace</span>
@@ -96,7 +104,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         <footer className="app-footer">
           <span>
             <GitBranch size={13} aria-hidden="true" />
-            college-compass
+            {controls.repositoryName}
           </span>
           <span>Synthetic history · No agents connected</span>
         </footer>

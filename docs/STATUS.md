@@ -2,19 +2,21 @@
 
 ## Current frontend work
 
-Branch: `feat/session-dashboard`. The resolved planning documents were merged to `main` separately. Feature work is paused for the requested design revision.
+Branch: `feat/t1-integration`, pushed through source checkpoint `a119f37`. The approved design is retained. The resolved planning documents were merged to `main` separately; feature work has not been merged into `main`.
 
 - Session dashboard with builder and agent filters, prompt/branch search, linked transcripts, and sample advisory context. Claude Code and Codex have distinct session labels.
 - Dark charcoal design with restrained green actions, fine dividers, session rows, compact navigation, and consistent supporting-page styles. Design reference: the restrained typography, navigation, and surface treatment of Supabase; this is not a clone.
-- Sample data and live accounts remain separate. No backend contracts, adapters, database policy, or provider integrations were changed.
+- Team setup, reusable invitations, device pairing/revocation, per-member sharing/privacy, transcript pagination/recovery, warning evidence, and storage controls work with visibly labeled browser-local samples. Sample and real-account data remain separate.
+- GitHub OAuth PKCE, safe callback handling, and authenticated project-read foundations are implemented. The existing ShareSpace Supabase project has GitHub sign-in disabled and no public schema/functions/migrations; the real two-account workflow awaits teammate 2's backend and provider configuration.
 - Fixed snapshot timestamps avoid presenting sample events as current live activity. Missing analysis remains unavailable.
 - Desktop/mobile Chromium checks cover the dashboard, sessions, transcript, connections, settings, and login, including Axe and overflow checks.
-- `npm run check`: passed (lint, all workspace type checks, 34 unit tests, production build).
-- `npm run test:e2e` against the local preview: 23 passed, with the mobile-only overflow case intentionally skipped on desktop. Final session-link accessibility changes also passed all four desktop/mobile navigation checks.
-- Browser screenshots inspected at desktop and mobile sizes; automated Axe scans reported no violations on the six covered surfaces. This is not a claim of complete accessibility certification or live-provider verification.
+- `npm run check`: passed on `a119f37` (lint, all workspace type checks, 47 unit tests, production build).
+- `npm run test:e2e` against the local preview: 70 passed, with two mobile-only overflow cases intentionally skipped on desktop.
+- Browser screenshots were inspected at desktop and mobile sizes; automated Axe and overflow checks passed on the covered surfaces. This is not complete accessibility certification or live-provider verification.
+- A protected [Vercel preview](https://sharespace-qh2lugwie-swis-projects-066d8b1d.vercel.app) is deployed and passed hosted HTTP smoke checks. CI is configured; exact evidence and remaining gates are tracked in [T1_PROGRESS.md](T1_PROGRESS.md).
 - Native Turbopack disk persistence is disabled after reproducible cache errors on the external volume. The preview remains on Webpack; production builds use Turbopack without disk persistence.
 
-Next teammate 1 work resumes after design feedback: real onboarding, invitation/pairing screens, and live session reads after the shared contract is reviewed with teammate 2. Stripe remains deferred.
+The frontend sample implementation is ready for review. Live onboarding, authorized reads/Realtime recovery, and mutations must be connected after the shared contract is reviewed with teammate 2. See [WEB_BACKEND_HANDOFF.md](WEB_BACKEND_HANDOFF.md) and [WEB_RELEASE.md](WEB_RELEASE.md). Stripe remains deferred.
 
 ## Original checkpoint record
 

@@ -1,3 +1,6 @@
-import { Settings } from '@/features/settings/settings';
-export const metadata = { title: 'Settings' };
-export default function Page() { return <Settings />; }
+import "@/features/workspace-controls/workspace-controls.css";
+import { Settings } from "@/features/settings/settings";
+export const metadata = { title: "Settings" };
+export default function Page() {
+  return <Settings />;
+}

@@ -3,29 +3,42 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, ArrowUpRight, GitBranch, Info, Plus, Search } from "lucide-react";
-import { useWorkspace } from "@/components/workspace-provider";
-import { Avatar, EmptyState } from "@/components/ui";
-import { sampleEvents } from "@/lib/sample-data";
+import { useWorkspaceControls, sharingForMember } from "@/features/workspace-controls/store";
+import { useSampleHistory } from "@/features/history/history-store";
 import {
-  filterSessions,
-  formatActivityAge,
-  sampleSessions,
-  SAMPLE_SNAPSHOT_AT,
-  type SessionFilters,
-} from "./session-model";
+  sampleObservationAt,
+  sampleObservationLabel,
+  visibleSampleSessions,
+  getSampleHistoryEvents,
+  visibleSampleWarnings,
+  warningTouchesRevokedHistory,
+} from "@/features/history/history-model";
+import { Avatar, EmptyState } from "@/components/ui";
+import { filterSessions, formatActivityAge, type SessionFilters } from "./session-model";
 
 const initialFilters: SessionFilters = { builder: "all", agent: "all", query: "" };
 
 export function Overview() {
-  const { state } = useWorkspace();
+  const { state: controls, sharingPaused, sharingEnabled } = useWorkspaceControls();
+  const { state: history } = useSampleHistory();
+  const availableSessions = visibleSampleSessions(history);
+  const overlap = visibleSampleWarnings(history).find(
+    (warning) =>
+      warning.outcome === "warning" &&
+      !warningTouchesRevokedHistory(
+        warning.evidence.map((item) => item.sessionId),
+        history,
+      ),
+  );
   const [filters, setFilters] = useState<SessionFilters>(initialFilters);
-  const sessions = filterSessions(sampleSessions, filters);
+  const sessions = filterSessions(availableSessions, filters);
   const hasFilters = filters.builder !== "all" || filters.agent !== "all" || filters.query !== "";
   const visibleIds = new Set(sessions.map((session) => session.id));
-  const recentEvents = sampleEvents
-    .filter((event) => visibleIds.has(event.sessionId))
-    .slice(-4)
-    .reverse();
+  const recentEvents = availableSessions
+    .filter((session) => visibleIds.has(session.id))
+    .flatMap((session) => getSampleHistoryEvents(session.id, history))
+    .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
+    .slice(0, 4);
 
   return (
     <div className="session-dashboard">
@@ -43,16 +56,19 @@ export function Overview() {
       <section className="dashboard-sessions" aria-labelledby="shared-sessions-heading">
         <div className="section-heading">
           <h2 id="shared-sessions-heading">
-            Shared sessions <span className="count">{sampleSessions.length}</span>
+            Shared sessions <span className="count">{availableSessions.length}</span>
           </h2>
           <span className="snapshot-label">
-            Sample snapshot <time dateTime={SAMPLE_SNAPSHOT_AT}>Oct 3 · 10:40 PDT</time>
+            Sample snapshot{" "}
+            <time dateTime={sampleObservationAt(history)}>{sampleObservationLabel(history)}</time>
           </span>
         </div>
-        {state.sharingPaused && (
+        {(!sharingEnabled || sharingPaused) && (
           <p className="dashboard-notice" role="status">
             <Info size={16} aria-hidden="true" />
-            Sample sharing is paused. Existing history remains visible.
+            {sharingPaused ? "Your sample sharing is paused." : "Your sample sharing is off."}{" "}
+            Existing history remains visible.
+            <Link href="/settings#sharing-section-title">Review sharing</Link>
           </p>
         )}
         <div className="session-filters">
@@ -97,7 +113,7 @@ export function Overview() {
           </label>
         </div>
         <div className="session-list-status">
-          <span role="status">
+          <span role="status" aria-label="Session count">
             {sessions.length} {sessions.length === 1 ? "session" : "sessions"}
             {hasFilters ? " match your filters" : " · Most recent first"}
           </span>
@@ -127,9 +143,7 @@ export function Overview() {
               </div>
               <div className="session-row-content">
                 <h3>
-                  <Link
-                    href={`/sessions/${session.id}`}
-                  >
+                  <Link href={`/sessions/${session.id}`}>
                     {session.title}
                     <ArrowUpRight size={15} aria-hidden="true" />
                   </Link>
@@ -145,11 +159,19 @@ export function Overview() {
               </div>
               <div className="session-row-meta">
                 <time dateTime={session.lastActivityAt} title="Relative to the sample snapshot">
-                  {formatActivityAge(session.lastActivityAt, SAMPLE_SNAPSHOT_AT)}
+                  {formatActivityAge(session.lastActivityAt, sampleObservationAt(history))}
                 </time>
                 <span className="sr-only">at the sample snapshot</span>
                 <span className="session-sharing">
-                  {state.sharingPaused ? "Sample · paused" : "Sample · shared"}
+                  {sharingForMember(controls, session.owner.toLowerCase()).privateSessions.includes(
+                    session.id,
+                  )
+                    ? "Sample · private"
+                    : sharingForMember(controls, session.owner.toLowerCase()).sharingPaused
+                      ? "Sample · paused"
+                      : sharingForMember(controls, session.owner.toLowerCase()).sharingEnabled
+                        ? "Sample · shared"
+                        : "Sample · sharing off"}
                 </span>
               </div>
             </article>
@@ -162,30 +184,35 @@ export function Overview() {
         )}
       </section>
 
-      <section className="overlap-notice" aria-labelledby="overlap-heading">
-        <Info size={18} aria-hidden="true" />
-        <div>
-          <div className="overlap-notice-heading">
-            <h2 id="overlap-heading">Possible overlap in saved-college storage</h2>
-            <span>Sample advisory</span>
+      {overlap && (
+        <section className="overlap-notice" aria-labelledby="overlap-heading">
+          <Info size={18} aria-hidden="true" />
+          <div>
+            <div className="overlap-notice-heading">
+              <h2 id="overlap-heading">Possible overlap in saved-college storage</h2>
+              <span>Sample advisory</span>
+            </div>
+            <p>
+              Sam’s API and Sri’s shortlist both mention persistence. Check the shared intent before
+              building the same thing twice.
+            </p>
+            <div className="overlap-links">
+              <Link href="/sessions/sample-sam#sam-request">
+                Sam’s prompt
+                <ArrowUpRight size={13} aria-hidden="true" />
+              </Link>
+              <Link href="/sessions/sample-sri#sri-request">
+                Sri’s prompt
+                <ArrowUpRight size={13} aria-hidden="true" />
+              </Link>
+              <Link href={`/warnings/${overlap.id}`}>
+                View warning <ArrowRight size={13} aria-hidden="true" />
+              </Link>
+              <span>Advisory only. Work can continue.</span>
+            </div>
           </div>
-          <p>
-            Sam’s API and Sri’s shortlist both mention persistence. Check the shared intent before
-            building the same thing twice.
-          </p>
-          <div className="overlap-links">
-            <Link href="/sessions/sample-sam#sam-request">
-              Sam’s prompt
-              <ArrowUpRight size={13} aria-hidden="true" />
-            </Link>
-            <Link href="/sessions/sample-sri#sri-request">
-              Sri’s prompt
-              <ArrowUpRight size={13} aria-hidden="true" />
-            </Link>
-            <span>Advisory only. Work can continue.</span>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="activity-section" aria-labelledby="activity-heading">
         <div className="section-heading">
@@ -199,7 +226,7 @@ export function Overview() {
           <ol className="activity-list">
             {recentEvents.map((event) => (
               <li key={event.id}>
-                <time dateTime={`2026-10-03T${event.time}:00-07:00`}>{event.time}</time>
+                <time dateTime={event.occurredAt}>{event.time}</time>
                 <span className="activity-person">
                   {event.sessionId === "sample-sam" ? "Sam" : "Sri"}
                 </span>
