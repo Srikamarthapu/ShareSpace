@@ -2,6 +2,8 @@
 
 These are code foundations, not claims of live account setup or end-to-end verification.
 
+Use [PRD.md](../PRD.md) for the resolved v1 scope. It places the application backend in Supabase Edge Functions and requires both Claude Code and Codex. Stripe/billing is deferred until after v1; the sandbox instructions below describe existing scaffolding, not current build work. Gemini and the proposed DeepSeek summaries are optional.
+
 ## Supabase
 
 Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `apps/web/.env.local`. The server uses verified auth, cookie refresh, and user-scoped queries. `/login` supports existing accounts; `/live` reads real projects. Project creation, invitations, device authorization, and connecting the collaborative UI remain pending.

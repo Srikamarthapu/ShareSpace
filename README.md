@@ -1,8 +1,8 @@
 # ShareSpace
 
-**Work-in-progress foundation.** This initial snapshot is being shared before the team reconciles competing PRDs. It is not the completed product, a live agent integration, or a production release.
+**Work-in-progress foundation.** Read the resolved [`PRD.md`](PRD.md), the two-person [`WORK_SPLIT.md`](docs/WORK_SPLIT.md), and the [`BUILD_PLAN.md`](docs/BUILD_PLAN.md). The code remains a starter, not a completed product, live agent integration, or production release.
 
-A shared workspace for builders and their coding agents: see current intent, inspect intentionally shared work, compare overlapping requests, and carry approved context into the next prompt.
+A shared workspace for builders and their coding agents: see shared sessions, inspect recent activity, and receive advisory warnings about overlapping work.
 
 ## Run locally
 
@@ -19,6 +19,8 @@ Open http://localhost:3000. The labeled sample workspace needs **no credentials*
 
 | Area | Starting point |
 | --- | --- |
+| Product requirements | [`PRD.md`](PRD.md) — single resolved v1 specification |
+| Teammate ownership | [`docs/WORK_SPLIT.md`](docs/WORK_SPLIT.md) |
 | Web workspace | `apps/web/src/features` — overview, sessions, coordination, connection guidance, settings |
 | Real auth | `/login`, `/live`, `apps/web/src/lib/supabase` — separate from the sample store |
 | Local adapter | `apps/adapter` — consent-gated hook normalization, privacy filters, dry-run CLI |
@@ -26,7 +28,7 @@ Open http://localhost:3000. The labeled sample workspace needs **no credentials*
 | Optional Gemini | `packages/integrations` — bounded, explicitly approved context summaries |
 | Database | `supabase` — staged schema and access-control foundation; see its status before applying |
 | Sponsor setup | [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) |
-| Work split / open decisions | [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) |
+| Implementation gates | [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) |
 | Snapshot status | [`docs/STATUS.md`](docs/STATUS.md) |
 
 ## Commands
@@ -43,13 +45,15 @@ Dependencies are pinned in package manifests and `package-lock.json`. Browser E2
 
 ## Sponsors and external services
 
-Supabase auth/data, Vercel deployment configuration, and Stripe sandbox Checkout/webhook foundations are included. Google AI Studio/Gemini is optional. The PRD’s Jev decision boundary remains separate; no Jev API or successful provider result is invented.
+Supabase auth/data, Vercel deployment configuration, and Stripe sandbox Checkout/webhook foundations are included. All Stripe/billing work is deferred until after v1; the existing scaffold is outside the first-version acceptance path. Google AI Studio/Gemini is optional. The PRD’s Jev decision boundary remains separate; no Jev API or successful provider result is invented.
 
 Copy `apps/web/.env.example` to `apps/web/.env.local` only when configuring real services. **Never commit that file, real keys, device credentials, or shared transcripts.** Cloud resources have not been provisioned by this snapshot. Stripe is restricted to sandbox keys and sandbox receipts; no paid plan or production entitlement is implemented.
 
 ## Scope and trust
 
-The original `Builder_Collaboration_Workspace_PRD.pdf` supplied on October 3, 2026 informed this draft. Its build instructions are source material, not completed acceptance gates. The team will reconcile product requirements before implementation continues.
+[`PRD.md`](PRD.md) replaces both original PRDs. Historical decisions are preserved in [`docs/DECISIONS.md`](docs/DECISIONS.md); the originals remain in Git history. DeepSeek summarization is a proposed optional extension, not a required or verified v1 integration.
+
+Every new feature uses a separate branch. Do not push or merge to `main` automatically; it requires an explicit human request for the current change. See [`CLAUDE.md`](CLAUDE.md) and [`AGENTS.md`](AGENTS.md).
 
 Sample findings are labeled fixtures. Unavailable checks stay unknown. No task is marked complete because an agent says so. No browser action claims to resume an agent. Device ingestion and preflight endpoints currently fail closed with explicit 503 responses.
 

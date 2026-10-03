@@ -1,6 +1,6 @@
 # Snapshot status — October 3, 2026
 
-The user requested an immediate repository checkpoint before reconciling competing PRDs. Feature expansion is paused. This document describes the initial snapshot, not release completion.
+The user requested an immediate repository checkpoint before reconciling competing PRDs. This document describes that initial snapshot, not release completion. The resolved product specification is [PRD.md](../PRD.md); ownership is in [WORK_SPLIT.md](WORK_SPLIT.md), delivery gates in [BUILD_PLAN.md](BUILD_PLAN.md), and the historical discussion in [DECISIONS.md](DECISIONS.md). Planning updates have not implemented those features.
 
 ## Present
 
@@ -37,4 +37,4 @@ The current install reports a high-severity `braces` advisory through Next's ESL
 
 ## Next
 
-Reconcile the PRDs with both builders, select the first real coordination loop, then resume implementation and full QA.
+Follow `BUILD_PLAN.md`: agree on the shared contract, verify both agent interfaces, and build the first real two-user session flow. Stripe and billing are deferred until after v1. DeepSeek summarization remains a proposed large-output option; do not treat it as an already working or approved integration.
