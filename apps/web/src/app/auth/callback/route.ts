@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { authCallbackInput } from "@/features/auth/callback";
+import { safeWorkspaceReturn } from "@/features/auth/return-path";
+import { takePostSignInPath } from "@/features/teams/pending-invite";
 
 export async function GET(request: NextRequest) {
   const input = authCallbackInput(request.nextUrl);
@@ -16,7 +18,8 @@ export async function GET(request: NextRequest) {
     if (!client) return finish("/login?error=unavailable");
     const { error } = await client.auth.exchangeCodeForSession(input.code);
     if (error) return finish("/login?error=callback");
-    return finish("/live");
+    const returnTo = safeWorkspaceReturn(request.nextUrl.searchParams.get("next"));
+    return finish(await takePostSignInPath(returnTo));
   } catch {
     return finish("/login?error=unavailable");
   }

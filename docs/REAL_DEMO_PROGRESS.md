@@ -1,6 +1,6 @@
 # Real demo implementation — October 3, 2026
 
-Branch `feat/real-demo`, starting from hosted `e9aaf78` plus combined branch merged at `ebeac52`. Main unchanged.
+Original demo branch: `feat/real-demo`, starting from hosted `e9aaf78` plus combined branch merged at `ebeac52`. The later user-authorized main integration is recorded in [TEAMMATE_MERGE.md](TEAMMATE_MERGE.md); the checkpoint notes below retain their original scope.
 
 ## Completed configuration
 - Supabase ShareSpace `cdrkkszcrfznhsgvfdfi` healthy; initial remote inspection found no application tables/functions/migrations.

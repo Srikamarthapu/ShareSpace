@@ -20,6 +20,12 @@ const config: NextConfig = {
   },
   transpilePackages: ['@workspace/core'],
   poweredByHeader: false,
+  async redirects() {
+    return [
+      { source: '/connect', destination: '/settings/connections', permanent: false },
+      { source: '/storage', destination: '/settings/storage', permanent: false },
+    ];
+  },
   async headers() {
     return [{ source: '/:path*', headers: [
       { key: 'X-Content-Type-Options', value: 'nosniff' },

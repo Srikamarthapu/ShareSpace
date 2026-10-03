@@ -23,6 +23,14 @@ New tables are not exposed to the Data API automatically, so the migration grant
 | `overlap_checks` | One row per prompt (`unique (trigger_event_id)`) |
 | `cleanup_notices` | Tells a user that their history was removed |
 
+## Team onboarding
+
+Team creation, repository creation, invite lookup/rotation/preview/acceptance, and member removal all use `public.demo_api` from the canonical real-demo backend. The shared Edge Function runtime verifies the caller with Supabase Auth before passing the actor ID; a submitted user ID never grants access. The RPC is executable only by `service_role`, and checks team membership and admin role for each operation.
+
+Invite preview is authenticated in this backend. A missing or replaced token previews as `invalid`; trying to accept a replaced token returns `invite_rotated`. The Edge Function platform JWT check remains off because the shared runtime validates user tokens itself and also accepts scoped adapter credentials on the other functions.
+
+`public.demo_api` reads `private.team_plan_limits` when accepting an invite or adding a repository. Free teams remain limited to two members and one repository; an active, current test Pro subscription raises those limits to ten members and five repositories. Member removal revokes their approved devices and removes their sharing settings.
+
 Rows that belong to a team carry `team_id`, and composite foreign keys `(x_id, team_id)` keep a child row in the same team as its parent.
 
 Realtime publishes `sessions`, `session_events`, `overlap_checks`, and `cleanup_notices`. The SELECT policies apply to each subscriber.
@@ -36,10 +44,15 @@ supabase start
 supabase db reset --local      # apply migrations
 supabase test db --local       # pgTAP tests in supabase/tests/database
 supabase db advisors --local
+supabase functions serve       # Edge Functions at http://127.0.0.1:55421/functions/v1
 ```
+
+To use the local stack from the web app, set `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:55421` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (from `supabase status`) in the root `.env`.
 
 ## Verified
 
 The teammate 2 checkpoint records that on October 3, 2026, `supabase db reset --local` applied the migration, `supabase test db --local` passed 24 access tests, and `supabase db advisors --local` reported no warnings or errors.
 
 The combined-branch verification independently applied the migration and passed all 24 pgTAP assertions in an isolated Supabase PostgreSQL 17.6.1.134 container. Test identities now set matching individual/JSON JWT claims for compatibility with both `auth.uid()` helper variants; anon clears both. The local CLI launchers exited 137, so that verification did not run the CLI or advisors. See [MERGE_VERIFICATION.md](MERGE_VERIFICATION.md) for scope and limitations. This merge does not apply the migration to the cloud project.
+
+The teammate onboarding branch recorded a local run of 48 database assertions, clean advisors, and a two-account invite flow. That run exercised its separate direct-database `private.*` RPC implementation, which this merge removes because it duplicated the deployed API and did not enforce paid-plan limits. It is historical evidence for that branch, not verification of the merged backend. The canonical onboarding operations are already in `real_demo.test.sql`; no additional schema migration is needed for those operations. This merge does not apply DDL to the cloud project.

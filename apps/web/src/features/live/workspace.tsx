@@ -6,12 +6,9 @@ import { useRouter } from "next/navigation";
 import {
   BookOpen,
   Bell,
-  CreditCard,
-  Database,
   GitBranch,
   LayoutGrid,
   MessageSquareText,
-  Plug,
   Settings2,
   ChevronRight,
 } from "lucide-react";
@@ -20,23 +17,21 @@ import {
   teamsRequestSchema,
   teamsResponseSchemas,
   devicesResponseSchemas,
-  type EventRow,
   type PairingView,
   type SessionRow,
 } from "@workspace/core";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "@/features/auth/actions";
+import { MemberAvatar } from "@/components/ui";
 import { useLiveWorkspace, mutate } from "./data";
 import { repositoryInput, repositoryInputError } from "./repository-input";
-import chat from "@/features/sessions/chat.module.css";
+import { LiveSessions, LiveTranscript } from "./transcript";
+import { LiveOverview } from "./overview";
 import "./workspace.css";
 
 const navigation = [
+  { view: "team", title: "Workspace", icon: LayoutGrid },
   { view: "sessions", title: "Sessions", icon: MessageSquareText },
-  { view: "team", title: "Team", icon: LayoutGrid },
-  { view: "devices", title: "Connections", icon: Plug },
   { view: "warnings", title: "Warnings", icon: Bell },
-  { view: "storage", title: "Storage", icon: Database },
   { view: "settings", title: "Settings", icon: Settings2 },
 ];
 function when(value: string | null) {
@@ -53,62 +48,6 @@ function Empty({ title, children }: { title: string; children: React.ReactNode }
     </div>
   );
 }
-function Event({ row, owner }: { row: EventRow; owner: string }) {
-  const isUser = row.kind === "user.message";
-  const isAssistant = row.kind === "assistant.message";
-  const isTool = row.kind === "tool.started" || row.kind === "tool.completed";
-  return (
-    <li
-      id={`event-${row.id}`}
-      className={`${chat.message} ${isUser ? chat.user : isAssistant ? chat.assistant : chat.tool}`}
-    >
-      <div className={chat.messageHeader}>
-        <strong>{isUser ? owner : isAssistant ? "Assistant" : isTool ? "Tool" : "Session"}</strong>
-        <time dateTime={row.occurred_at}>{when(row.occurred_at)}</time>
-        <a
-          className={chat.anchor}
-          href={`#event-${row.id}`}
-          aria-label={`Link to event ${row.sequence}`}
-        >
-          #
-        </a>
-      </div>
-      {row.kind === "user.message" || row.kind === "assistant.message" ? (
-        <div className={chat.bubble}>{row.payload.text}</div>
-      ) : row.kind === "tool.started" || row.kind === "tool.completed" ? (
-        <details className={chat.toolDisclosure}>
-          <summary className={chat.toolSummary}>
-            <span>{row.payload.tool_name}</span>
-            <span className={chat.toolStatus}>
-              {row.kind === "tool.started" ? "Started" : row.payload.status}
-            </span>
-          </summary>
-          <div className={chat.toolBody}>
-            {row.payload.relative_paths.length > 0 && (
-              <p className={chat.toolFile}>{row.payload.relative_paths.join(", ")}</p>
-            )}
-            <pre>
-              {row.kind === "tool.started"
-                ? (row.payload.input_excerpt ?? "No input excerpt shared.")
-                : (row.payload.output_excerpt ?? "No output excerpt shared.")}
-            </pre>
-          </div>
-        </details>
-      ) : (
-        <p className="muted small">
-          {row.kind === "session.started" ? "Session started" : "Session ended"}
-        </p>
-      )}
-      {(row.redacted || row.truncated) && (
-        <div className={chat.messageMeta}>
-          {row.redacted && <span>Secrets redacted</span>}
-          {row.truncated && <span>Shortened excerpt</span>}
-        </div>
-      )}
-    </li>
-  );
-}
-
 export function LiveWorkspace({
   user,
   query,
@@ -117,9 +56,13 @@ export function LiveWorkspace({
   query: Record<string, string>;
 }) {
   const router = useRouter();
-  const view = query.view ?? "sessions";
+  const view =
+    query.view === "settings" && (query.tab === "devices" || query.tab === "storage")
+      ? query.tab
+      : (query.view ?? "team");
+  const settingsOpen = ["settings", "devices", "storage", "manage"].includes(view);
   const [eventLimit, setEventLimit] = useState(100);
-  const { client, data, loading, error, updatedAt, connection, refresh } = useLiveWorkspace(
+  const { client, data, loading, error, connection, refresh } = useLiveWorkspace(
     user.id,
     query.session,
     eventLimit,
@@ -133,12 +76,12 @@ export function LiveWorkspace({
   const [invite, setInvite] = useState("");
   const [pairing, setPairing] = useState<PairingView | null>(null);
   const [code, setCode] = useState(query.code ?? "");
-  const [search, setSearch] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const self = data.members.find((member) => member.user_id === user.id);
   const ownName = self?.display_name ?? user.email;
   const selected = data.selected?.id === query.session ? data.selected : null;
-  const currentTitle = navigation.find((item) => item.view === view)?.title ?? "Workspace guide";
+  const currentTitle = settingsOpen
+    ? "Settings"
+    : (navigation.find((item) => item.view === view)?.title ?? "Workspace guide");
   const isAdmin = self?.role === "admin";
   async function act(work: () => Promise<void>, success?: string) {
     setPending(true);
@@ -180,7 +123,7 @@ export function LiveWorkspace({
     setCreateErrors({});
     await act(async () => {
       await mutate(client, "teams", request.data);
-      router.replace("/live?view=team");
+      router.replace("/live?view=manage");
     }, "Your team is ready. Invite your teammate next.");
   }
   async function loadInvite(rotate: boolean) {
@@ -261,26 +204,23 @@ export function LiveWorkspace({
       </a>
       <aside className="sidebar">
         <Link className="brand" href="/live">
-          ShareSpace
-          <span className="brand-mark" aria-hidden="true">
-            ↗
-          </span>
+          ShareSpace<span className="version">alpha</span>
         </Link>
-        <nav aria-label="Workspace navigation">
+        <div className="nav-caption">PROJECT</div>
+        <nav aria-label="Workspace navigation" className="main-navigation">
           {navigation.map(({ view: itemView, title, icon: Icon }) => (
             <Link
               key={itemView}
               href={`/live?view=${itemView}`}
-              aria-current={view === itemView ? "page" : undefined}
+              className={`nav-item ${view === itemView || (itemView === "settings" && settingsOpen) ? "selected" : ""}`}
+              aria-current={
+                view === itemView || (itemView === "settings" && settingsOpen) ? "page" : undefined
+              }
             >
               <Icon size={17} aria-hidden="true" />
               {title}
             </Link>
           ))}
-          <Link href="/live/billing">
-            <CreditCard size={17} aria-hidden="true" />
-            Billing
-          </Link>
         </nav>
         <div className="sidebar-bottom">
           <Link className="guide-link" href="/live?view=guide">
@@ -306,7 +246,6 @@ export function LiveWorkspace({
             <span>{currentTitle}</span>
           </div>
           <div className="workspace-mode">
-            <ThemeToggle />
             <form action={signOut}>
               <button className="button button-secondary" type="submit">
                 Sign out
@@ -367,7 +306,7 @@ export function LiveWorkspace({
                               action: "accept_invite",
                               token: query.invite,
                             });
-                            router.replace("/live?view=team");
+                            router.replace("/live?view=manage");
                           }, "You joined the team.")
                         }
                       >
@@ -437,7 +376,27 @@ export function LiveWorkspace({
                 </>
               ) : (
                 <>
-                  {view === "team" && (
+                  {settingsOpen && (
+                    <nav className="live-settings-tabs" aria-label="Settings sections">
+                      {[
+                        { view: "manage", label: "Team" },
+                        { view: "settings", label: "Sharing" },
+                        { view: "devices", label: "Connections" },
+                        { view: "storage", label: "Storage" },
+                      ].map((item) => (
+                        <Link
+                          key={item.view}
+                          href={`/live?view=${item.view}`}
+                          aria-current={view === item.view ? "page" : undefined}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                      <Link href="/live/billing">Billing</Link>
+                    </nav>
+                  )}
+                  {view === "team" && <LiveOverview data={data} />}
+                  {view === "manage" && (
                     <>
                       {heading(
                         "Your team",
@@ -452,14 +411,17 @@ export function LiveWorkspace({
                         <ul className="live-list">
                           {data.members.map((member) => (
                             <li key={member.user_id}>
-                              <div>
-                                <strong>
-                                  {member.display_name}
-                                  {member.user_id === user.id ? " (you)" : ""}
-                                </strong>
-                                <p className="muted small">
-                                  {member.role} · Joined {when(member.joined_at)}
-                                </p>
+                              <div className="live-member">
+                                <MemberAvatar id={member.user_id} name={member.display_name} />
+                                <div>
+                                  <strong>
+                                    {member.display_name}
+                                    {member.user_id === user.id ? " (you)" : ""}
+                                  </strong>
+                                  <p className="muted small">
+                                    {member.role} · Joined {when(member.joined_at)}
+                                  </p>
+                                </div>
                               </div>
                               {isAdmin && member.user_id !== user.id && (
                                 <button
@@ -813,203 +775,40 @@ export function LiveWorkspace({
                       )}
                     </>
                   )}
-                  {view === "sessions" && (
-                    <>
-                      {heading(
-                        selected?.title ?? "Shared sessions",
-                        selected
-                          ? `${AGENT_LABELS[selected.agent]} · ${selected.branch ?? "Branch unavailable"}`
-                          : "Real sessions shared by your team’s connected agents.",
-                      )}
-                      {query.session ? (
-                        !selected ? (
-                          <Empty title="Session unavailable">
-                            This session may be private, removed, or outside your current team.{" "}
-                            <Link href="/live?view=sessions">Return to sessions.</Link>
-                          </Empty>
-                        ) : (
-                          <>
-                            <Link className="text-link" href="/live?view=sessions">
-                              ← All sessions
-                            </Link>
-                            <div className="live-session-meta">
-                              <span>
-                                {data.members.find((member) => member.user_id === selected.user_id)
-                                  ?.display_name ?? "Former member"}
-                              </span>
-                              <span>{selected.visibility}</span>
-                              <span>{selected.event_count} events</span>
-                              <span>{selected.ended_at ? "Ended" : "Active"}</span>
-                            </div>
-                            {selected.capture_limitations.length > 0 && (
-                              <p className="live-feedback">
-                                Capture limitations: {selected.capture_limitations.join(" · ")}
-                              </p>
-                            )}
-                            {selected.user_id === user.id && !selected.history_removed_at && (
-                              <div className="live-actions">
-                                <button
-                                  className="button button-secondary"
-                                  disabled={pending}
-                                  onClick={() => visibility(selected)}
-                                >
-                                  {selected.visibility === "shared"
-                                    ? "Make private"
-                                    : "Share session"}
-                                </button>
-                                <button
-                                  className="button button-secondary"
-                                  disabled={pending}
-                                  onClick={() => setDeleteTarget(selected.id)}
-                                >
-                                  Delete shared history
-                                </button>
-                              </div>
-                            )}
-                            {deleteTarget === selected.id && (
-                              <section className="setup-panel live-section">
-                                <h2>Delete this session’s shared history?</h2>
-                                <p>
-                                  Events and related warning excerpts will be removed for everyone.
-                                  A record that the history was deleted remains. This cannot be
-                                  undone.
-                                </p>
-                                <div className="live-actions">
-                                  <button
-                                    className="button button-primary"
-                                    disabled={pending}
-                                    onClick={() =>
-                                      void act(async () => {
-                                        await mutate(client, "sharing", {
-                                          action: "delete_session",
-                                          session_id: selected.id,
-                                        });
-                                        setDeleteTarget(null);
-                                      }, "Shared history deleted.")
-                                    }
-                                  >
-                                    Confirm deletion
-                                  </button>
-                                  <button
-                                    className="button button-secondary"
-                                    disabled={pending}
-                                    onClick={() => setDeleteTarget(null)}
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </section>
-                            )}
-                            {selected.history_removed_at ? (
-                              <Empty title="History removed">
-                                {selected.history_removed_reason === "owner_deleted"
-                                  ? "The owner deleted this history."
-                                  : "Older history was removed to stay within storage limits."}
-                              </Empty>
-                            ) : (
-                              <section className={chat.conversation}>
-                                <div className={chat.conversationHeader}>
-                                  <h2>Conversation</h2>
-                                  <span className={chat.readOnly}>Read-only shared transcript</span>
-                                </div>
-                                {selected.event_count > data.events.length && (
-                                  <button
-                                    className="button button-secondary"
-                                    disabled={eventLimit >= 1000}
-                                    onClick={() =>
-                                      setEventLimit((limit) => Math.min(1000, limit + 100))
-                                    }
-                                  >
-                                    {eventLimit >= 1000
-                                      ? "Showing the latest 1,000 events"
-                                      : "Load earlier events"}
-                                  </button>
-                                )}
-                                {!data.events.length ? (
-                                  <Empty title="No events available">
-                                    The adapter has not uploaded readable events for this session.
-                                  </Empty>
-                                ) : (
-                                  <ol className={chat.thread}>
-                                    {data.events.map((row) => (
-                                      <Event
-                                        key={row.id}
-                                        row={row}
-                                        owner={
-                                          data.members.find(
-                                            (member) => member.user_id === selected.user_id,
-                                          )?.display_name ?? "Member"
-                                        }
-                                      />
-                                    ))}
-                                  </ol>
-                                )}
-                              </section>
-                            )}
-                          </>
-                        )
+                  {view === "sessions" &&
+                    (query.session ? (
+                      selected ? (
+                        <LiveTranscript
+                          key={selected.id}
+                          data={data}
+                          session={selected}
+                          userId={user.id}
+                          pending={pending}
+                          eventLimit={eventLimit}
+                          onLoadEarlier={() =>
+                            setEventLimit((limit) => Math.min(1000, limit + 100))
+                          }
+                          onVisibility={() => visibility(selected)}
+                          onDelete={() =>
+                            act(async () => {
+                              await mutate(client, "sharing", {
+                                action: "delete_session",
+                                session_id: selected.id,
+                              });
+                            }, "Shared history deleted.")
+                          }
+                          connection={connection}
+                          refresh={() => void refresh()}
+                        />
                       ) : (
-                        <>
-                          <label className="sr-only" htmlFor="session-search">
-                            Search sessions
-                          </label>
-                          <input
-                            className="live-search"
-                            id="session-search"
-                            placeholder="Search session titles or branches…"
-                            type="search"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                          />
-                          {!data.sessions.length ? (
-                            <Empty title="Your shared history starts here">
-                              Connect an agent, turn sharing on, and run a session in your linked
-                              repository. <Link href="/live?view=guide">Open the setup guide.</Link>
-                            </Empty>
-                          ) : (
-                            <ul className="live-list">
-                              {data.sessions
-                                .filter((session) =>
-                                  `${session.title} ${session.branch} ${session.latest_prompt}`
-                                    .toLowerCase()
-                                    .includes(search.toLowerCase()),
-                                )
-                                .map((session) => (
-                                  <li key={session.id}>
-                                    <div>
-                                      <Link
-                                        className="live-session-title"
-                                        href={`/live?view=sessions&session=${session.id}`}
-                                      >
-                                        {session.title ?? "Untitled agent session"}
-                                      </Link>
-                                      <p>
-                                        {AGENT_LABELS[session.agent]} ·{" "}
-                                        {data.members.find(
-                                          (member) => member.user_id === session.user_id,
-                                        )?.display_name ?? "Former member"}{" "}
-                                        · {session.branch ?? "Branch unavailable"}
-                                      </p>
-                                      <p className="muted small">
-                                        {when(session.last_activity_at)} ·{" "}
-                                        {session.history_removed_at
-                                          ? "History removed"
-                                          : `${session.event_count} events`}{" "}
-                                        · {session.visibility}
-                                      </p>
-                                    </div>
-                                    <ChevronRight size={17} aria-hidden="true" />
-                                  </li>
-                                ))}
-                            </ul>
-                          )}
-                          <p className="muted small">
-                            Showing up to 100 most recently active sessions.
-                          </p>
-                        </>
-                      )}
-                    </>
-                  )}
+                        <Empty title="Session unavailable">
+                          This session may be private, removed, or outside your current team.{" "}
+                          <Link href="/live?view=sessions">Return to sessions.</Link>
+                        </Empty>
+                      )
+                    ) : (
+                      <LiveSessions data={data} />
+                    ))}
                   {view === "warnings" && (
                     <>
                       {heading(
@@ -1131,7 +930,7 @@ export function LiveWorkspace({
                       )}
                     </>
                   )}
-                  {!navigation.some((item) => item.view === view) && (
+                  {!navigation.some((item) => item.view === view) && !settingsOpen && (
                     <>
                       {heading(
                         "Start sharing real work",
@@ -1144,7 +943,7 @@ export function LiveWorkspace({
                             Open Team, create an invite, and send it to your teammate. They sign up
                             in a different browser profile and join the same team.
                           </p>
-                          <Link className="text-link" href="/live?view=team">
+                          <Link className="text-link" href="/live?view=manage">
                             Open Team →
                           </Link>
                         </li>
@@ -1196,16 +995,6 @@ export function LiveWorkspace({
             </>
           )}
         </main>
-        <footer className="app-footer">
-          <span>
-            <GitBranch size={13} aria-hidden="true" />
-            {data.repository?.name ?? "No repository connected"}
-          </span>
-          <span>
-            {connection}
-            {updatedAt ? ` · Updated ${new Date(updatedAt).toLocaleTimeString()}` : ""}
-          </span>
-        </footer>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ The workspace starts empty. Sessions appear only after each builder opts in and 
 
 ## 1. Create two accounts
 
-1. Open the app and choose **Create account**. Enter a display name, email, and password.
+1. Open the app, expand **Create an account with email**, and choose **Create account** after entering your name, email, and password.
 2. Follow the Supabase confirmation email, then sign in.
 3. Use a second browser profile or private window for your teammate's account.
 
@@ -15,9 +15,9 @@ Email confirmation is enabled with Supabase's built-in sender. That sender only 
 ## 2. Create and join a workspace
 
 1. Builder 1 enters a team name and the exact GitHub `owner/repository` name.
-2. In **Team**, create a new invite link and share it privately with Builder 2.
+2. In **Settings → Team**, create a new invite link and share it privately with Builder 2.
 3. Builder 2 opens the link while signed in and chooses **Join team**.
-4. Each builder opens **Settings** and turns on **Share future agent sessions with my team** for the repository. Leave **Pause new event uploads** off.
+4. Each builder opens **Settings → Sharing** and turns on **Share future agent sessions with my team** for the repository. Leave **Pause new event uploads** off.
 
 The free workspace allows two members and one repository. The app does not clone GitHub repositories or grant GitHub access; each builder needs their own local checkout and repository permissions.
 

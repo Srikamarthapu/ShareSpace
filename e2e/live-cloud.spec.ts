@@ -18,9 +18,10 @@ test.use({ trace: "off", screenshot: "off", video: "off" });
 
 async function signIn(page: Page, account: { email: string; password: string }) {
   await page.goto("/login");
-  await page.getByLabel("Email", { exact: true }).fill(account.email);
-  await page.getByLabel("Password", { exact: true }).fill(account.password);
-  await page.getByRole("button", { name: "Sign in to workspace", exact: true }).click();
+  await page.getByText("Sign in with email", { exact: true }).click();
+  await page.locator("#email").fill(account.email);
+  await page.locator("#password").fill(account.password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(/\/live/);
   // URL navigation can complete before the workspace hydrates. Wait for a real view
   // before deciding whether this account needs onboarding.
@@ -57,13 +58,12 @@ test("real users share a session, enforce privacy, delete history and revoke a d
   const teammate = await teammateContext.newPage();
   try {
     await signIn(owner, credentials!.owner);
-    if (
-      await owner.getByRole("heading", { name: "Welcome to ShareSpace", exact: true }).isVisible()
-    ) {
+    if (await owner.getByRole("heading", { name: "Set up your team", exact: true }).isVisible()) {
       await owner.getByLabel("Team name", { exact: true }).fill("ShareSpace live verification");
       await owner.getByLabel("GitHub repository", { exact: true }).fill(credentials!.repository);
       await owner.getByRole("button", { name: "Create team", exact: true }).click();
-    } else await owner.goto("/live?view=team");
+    } else await owner.goto("/live?view=manage");
+    await owner.goto("/live?view=manage");
     await expect(owner.getByRole("heading", { name: "Your team", exact: true })).toBeVisible();
     await owner.getByRole("button", { name: "Create new invite link", exact: true }).click();
     const inviteInput = owner.getByLabel("Invite link", { exact: true });

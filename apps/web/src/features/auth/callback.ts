@@ -1,4 +1,5 @@
-// Authorization always resumes in /live; caller-provided return URLs are ignored.
+// Authorization resumes in /live, or at an invite remembered in an HTTP-only cookie.
+// Caller-provided return URLs are ignored.
 export function authCallbackInput(
   url: URL,
 ): { code: string } | { error: "cancelled" | "callback" | "unavailable" } {

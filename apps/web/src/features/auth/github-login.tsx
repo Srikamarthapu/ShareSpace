@@ -4,8 +4,15 @@ import { useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { createSupabaseBrowser } from "@/lib/supabase/client";
 import type { ProviderAvailability } from "./availability";
+import { safeWorkspaceReturn } from "./return-path";
 
-export function GithubLogin({ availability }: { availability: ProviderAvailability }) {
+export function GithubLogin({
+  availability,
+  returnTo = "/live",
+}: {
+  availability: ProviderAvailability;
+  returnTo?: string;
+}) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   async function signIn() {
@@ -13,10 +20,13 @@ export function GithubLogin({ availability }: { availability: ProviderAvailabili
     setPending(true);
     try {
       const client = createSupabaseBrowser();
+      const callback = new URL("/auth/callback", window.location.origin);
+      const next = safeWorkspaceReturn(returnTo);
+      if (next !== "/live") callback.searchParams.set("next", next);
       const { error } = await client.auth.signInWithOAuth({
         provider: "github",
         options: {
-          redirectTo: new URL("/auth/callback", window.location.origin).href,
+          redirectTo: callback.href,
         },
       });
       if (error) throw error;

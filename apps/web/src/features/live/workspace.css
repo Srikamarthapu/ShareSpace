@@ -75,6 +75,11 @@
 .live-list > li > div {
   min-width: 0;
 }
+.live-member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .live-list h2 {
   font-size: 15px;
 }
@@ -180,4 +185,53 @@
   .live-workspace .profile {
     display: none;
   }
+}
+
+/* Keep the live views aligned with the teammate's compact workspace design. */
+.live-workspace .sidebar nav a {
+  min-height: 38px;
+  padding: 8px 10px;
+}
+.live-workspace .page-heading {
+  margin-bottom: 24px;
+}
+.live-workspace .page-heading h1 {
+  font-size: 22px;
+}
+.live-workspace .page-heading p {
+  margin-top: 6px;
+  font-size: 13px;
+}
+.live-workspace .page-heading .button {
+  min-height: 32px;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+.live-workspace .setup-panel {
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.live-settings-tabs {
+  display: flex;
+  gap: 24px;
+  margin: 0 0 26px;
+  border-bottom: 1px solid var(--border);
+}
+.live-settings-tabs a {
+  padding: 0 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+  border-bottom: 2px solid transparent;
+}
+.live-settings-tabs a[aria-current="page"] {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+.live-workspace input[class*="search"] {
+  min-height: 32px;
+  height: 32px;
+  padding: 0 10px;
+}
+.live-workspace .live-list > li {
+  padding: 14px 2px;
 }

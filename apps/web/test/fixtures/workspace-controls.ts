@@ -15,6 +15,7 @@ export type SampleMember = {
   id: string;
   name: string;
   role: WorkspaceRole;
+  githubLogin?: string;
 };
 
 export type SampleDevice = {
@@ -90,7 +91,7 @@ export const initialWorkspaceControls: WorkspaceControlsState = {
   teamName: "College Compass",
   repositoryName: "college-compass",
   members: [
-    { id: "sri", name: "Sri", role: "admin" },
+    { id: "sri", name: "Sri", role: "admin", githubLogin: "Srikamarthapu" },
     { id: "sam", name: "Sam", role: "member" },
   ],
   actingMemberId: "sri",
@@ -170,7 +171,13 @@ function parseMembers(value: unknown): SampleMember[] {
     const name = boundedText(item?.name, 48);
     const role = item?.role;
     if (!id || name.length < 2 || (role !== "admin" && role !== "member")) return null;
-    return { id, name, role } satisfies SampleMember;
+    const githubLogin =
+      typeof item?.githubLogin === "string" && /^[A-Za-z0-9-]{1,39}$/.test(item.githubLogin)
+        ? item.githubLogin
+        : undefined;
+    return githubLogin
+      ? ({ id, name, role, githubLogin } satisfies SampleMember)
+      : ({ id, name, role } satisfies SampleMember);
   });
   if (parsed.some((member) => member === null)) {
     return initialWorkspaceControls.members.map((member) => ({ ...member }));

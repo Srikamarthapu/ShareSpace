@@ -30,6 +30,8 @@ export const config = {
     "/live/:path*",
     "/login",
     "/auth/callback",
+    "/invite/:path*",
+    "/api/projects/:path*",
     "/api/billing/checkout",
   ],
 };
