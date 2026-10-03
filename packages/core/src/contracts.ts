@@ -81,7 +81,7 @@ export const eventKindSchema = z.enum([
   "session.ended",
 ]);
 
-function serializedByteLength(value: unknown): number {
+export function serializedByteLength(value: unknown): number {
   try {
     const serialized = JSON.stringify(value);
     return serialized === undefined ? Number.POSITIVE_INFINITY : new TextEncoder().encode(serialized).byteLength;
