@@ -17,7 +17,7 @@
 }
 
 .controls-sample-tag {
-  border-color: #4a6152;
+  border-color: var(--border-success-strong);
   color: var(--primary);
   white-space: nowrap;
 }
@@ -54,7 +54,7 @@
   width: 34px;
   height: 34px;
   margin-bottom: 11px;
-  border: 1px solid #35483b;
+  border: 1px solid var(--border-success);
   border-radius: var(--radius);
   background: var(--primary-soft);
   color: var(--primary);
@@ -182,9 +182,9 @@
   justify-content: space-between;
   gap: 14px;
   padding: 14px;
-  border: 1px dashed #3a473f;
+  border: 1px dashed var(--border-success);
   border-radius: var(--radius);
-  background: #171b18;
+  background: var(--surface-subtle);
 }
 
 .controls-empty-invite p {
@@ -240,14 +240,14 @@
 .controls-avatar {
   display: grid;
   place-items: center;
-  background: #35463a;
-  color: #e2f5e9;
+  background: var(--surface-success-strong);
+  color: var(--success-ink);
   font-size: 10px;
   font-weight: 600;
 }
 
 .controls-role-admin {
-  border-color: #526a59;
+  border-color: var(--border-success-strong);
   color: var(--primary);
 }
 
@@ -373,8 +373,8 @@
 }
 
 .controls-state-private {
-  border-color: #71534d;
-  color: #e5bd9b;
+  border-color: var(--border-warning);
+  color: var(--warning-ink);
 }
 
 .controls-state-eligible {
@@ -428,9 +428,9 @@
 
 .controls-reset-confirm {
   padding: 14px;
-  border: 1px solid #654044;
+  border: 1px solid var(--border-danger);
   border-radius: var(--radius);
-  background: #21191a;
+  background: var(--surface-danger-muted);
 }
 
 .controls-reset-confirm > p {
@@ -522,7 +522,7 @@
   flex: 0 0 32px;
   width: 32px;
   height: 32px;
-  border: 1px solid #3e5646;
+  border: 1px solid var(--border-success);
   border-radius: 50%;
   background: var(--primary-soft);
   color: var(--primary);
@@ -531,19 +531,19 @@
 }
 
 .controls-state-pending {
-  border-color: #675934;
+  border-color: var(--border-warning);
   color: var(--warning);
 }
 
 .controls-state-approved {
-  border-color: #48624f;
+  border-color: var(--border-success-strong);
   color: var(--primary);
 }
 
 .controls-state-rejected,
 .controls-state-revoked {
-  border-color: #594144;
-  color: #d7a7aa;
+  border-color: var(--border-error);
+  color: var(--error-ink-muted);
 }
 
 .controls-scope-list {
@@ -596,19 +596,19 @@
   width: fit-content;
   padding: 2px 5px;
   border-radius: 3px;
-  background: #262b28;
+  background: var(--surface-neutral);
   color: var(--muted);
   font-size: 10px;
 }
 
 .controls-capability-partial {
-  background: #3a3322;
+  background: var(--surface-warning-neutral);
   color: var(--warning);
 }
 
 .controls-capability-unsupported {
-  background: #302427;
-  color: #d8aeb1;
+  background: var(--surface-error-neutral);
+  color: var(--error-ink);
 }
 
 .controls-inline-warning {
@@ -628,7 +628,7 @@
   width: 40px;
   height: 40px;
   margin: 14px 0 10px;
-  border: 1px solid #3e5646;
+  border: 1px solid var(--border-success);
   border-radius: var(--radius);
   background: var(--primary-soft);
   color: var(--primary);
@@ -803,7 +803,7 @@
 
 .controls-error-message {
   min-height: 1.4em;
-  color: #efb2b6;
+  color: var(--error);
   font-size: 12px;
   line-height: 1.55;
 }
@@ -888,7 +888,7 @@
 
 .controls-invite-valid,
 .controls-invite-success {
-  border-color: #3e5646;
+  border-color: var(--border-success);
 }
 
 .controls-invite-valid > svg,
@@ -898,12 +898,12 @@
 
 .controls-invite-error,
 .controls-invite-full {
-  border-color: #594144;
+  border-color: var(--border-error);
 }
 
 .controls-invite-error > svg,
 .controls-invite-full > svg {
-  color: #d8aeb1;
+  color: var(--error-ink);
 }
 
 .controls-join-card .controls-form {

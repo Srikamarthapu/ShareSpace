@@ -5,6 +5,7 @@ import { GithubLogin } from "@/features/auth/github-login";
 import { githubAvailability } from "@/features/auth/availability";
 import { loginErrorMessage } from "@/features/auth/callback";
 import { supabaseConfig } from "@/lib/supabase/config";
+import { ThemeToggle } from "@/components/theme-toggle";
 export const metadata = { title: "Sign in" };
 export const dynamic = "force-dynamic";
 export default async function Page({
@@ -17,6 +18,9 @@ export default async function Page({
   const error = loginErrorMessage((await searchParams).error);
   return (
     <main className="login-panel">
+      <div className="standalone-appearance">
+        <ThemeToggle />
+      </div>
       <Link href="/" className="brand">
         ShareSpace
       </Link>

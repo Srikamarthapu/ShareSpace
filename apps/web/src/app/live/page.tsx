@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { signOut } from "@/features/auth/actions";
+import { ThemeToggle } from "@/components/theme-toggle";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Your workspace" };
 export default async function Page() {
@@ -13,6 +14,9 @@ export default async function Page() {
   const resultProjects = await client.from("projects").select("id, name").order("created_at");
   return (
     <main className="standalone-page">
+      <div className="standalone-appearance">
+        <ThemeToggle />
+      </div>
       <Link href="/live" className="brand">
         ShareSpace
       </Link>

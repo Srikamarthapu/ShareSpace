@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useWorkspace } from "./workspace-provider";
 import { useWorkspaceControls } from "@/features/workspace-controls/store";
+import { ThemeToggle } from "./theme-toggle";
 
 const navigation = [
   { href: "/", label: "Workspace", icon: LayoutGrid },
@@ -88,6 +89,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             </span>
           </div>
           <div className="workspace-mode">
+            <ThemeToggle />
             <span className="sample-indicator">Sample workspace</span>
             <Link href="/login">
               Sign in
