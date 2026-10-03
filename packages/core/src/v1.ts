@@ -8,7 +8,7 @@ import {
   safeRelativePathSchema,
   serializedByteLength,
   uuidSchema,
-} from "./contracts.js";
+} from "./contracts";
 
 /**
  * ShareSpace v1 shared contract. See docs/CONTRACT.md for the flows.

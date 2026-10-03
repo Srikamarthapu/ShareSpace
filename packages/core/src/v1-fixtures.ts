@@ -10,7 +10,7 @@ import type {
   SessionRow,
   StorageStatus,
   TeamRow,
-} from "./v1.js";
+} from "./v1";
 
 /**
  * Sample rows that match the v1 contract, one per UI state. SAMPLE ONLY: never show these

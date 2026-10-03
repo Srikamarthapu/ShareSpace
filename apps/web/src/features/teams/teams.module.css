@@ -1,0 +1,82 @@
+.page {
+  display: grid;
+  gap: 20px;
+  max-width: 600px;
+  margin: 48px auto;
+  padding: 0 16px;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.header h1 {
+  font-size: 22px;
+}
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+.card {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.card h2 {
+  font-size: 15px;
+}
+.card form {
+  display: grid;
+  gap: 8px;
+}
+.or {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+.members {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.members li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+.members li:first-child {
+  border-top: 0;
+}
+.members img,
+.initials {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+.initials {
+  display: grid;
+  place-items: center;
+  background: var(--surface-raised);
+  font-size: 11px;
+}
+.role {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+.inviteRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.inviteRow input {
+  flex: 1 1 260px;
+  min-width: 0;
+}

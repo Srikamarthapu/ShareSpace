@@ -2,6 +2,8 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServer } from "@/lib/supabase/server";
+import { appOrigin } from "@/lib/app-origin";
+import { takePostSignInPath } from "@/features/teams/pending-invite";
 
 export type LoginState = { error: string };
 export async function signIn(_previous: LoginState, form: FormData): Promise<LoginState> {
@@ -17,7 +19,55 @@ export async function signIn(_previous: LoginState, form: FormData): Promise<Log
   } catch {
     return { error: "Authentication is unavailable. Please try again." };
   }
-  redirect("/live");
+  redirect(await takePostSignInPath());
+}
+
+export type SignUpState = { error: string; notice: string };
+export async function signUp(_previous: SignUpState, form: FormData): Promise<SignUpState> {
+  const input = z
+    .object({
+      name: z.string().trim().min(1).max(100),
+      email: z.email().max(254),
+      password: z.string().min(8).max(256),
+    })
+    .safeParse({
+      name: form.get("name"),
+      email: form.get("email"),
+      password: form.get("password"),
+    });
+  if (!input.success)
+    return {
+      error: "Enter your name, an email, and a password of at least 8 characters.",
+      notice: "",
+    };
+  const client = await createSupabaseServer();
+  if (!client)
+    return { error: "Configure Supabase first using the root .env.example.", notice: "" };
+  let signedIn = false;
+  try {
+    const { data, error } = await client.auth.signUp({
+      email: input.data.email,
+      password: input.data.password,
+      options: {
+        data: { full_name: input.data.name },
+        emailRedirectTo: new URL("/auth/callback", await appOrigin()).href,
+      },
+    });
+    if (error)
+      return {
+        error:
+          error.code === "weak_password"
+            ? "Choose a stronger password."
+            : "Could not create the account. Try again or sign in.",
+        notice: "",
+      };
+    signedIn = Boolean(data.session);
+  } catch {
+    return { error: "Authentication is unavailable. Please try again.", notice: "" };
+  }
+  // With email confirmation on, the confirmation link finishes sign-in through /auth/callback.
+  if (!signedIn) return { error: "", notice: "Check your email to confirm your account." };
+  redirect(await takePostSignInPath());
 }
 export async function signOut() {
   const client = await createSupabaseServer();

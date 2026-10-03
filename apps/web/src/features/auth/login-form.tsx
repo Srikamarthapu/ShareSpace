@@ -24,10 +24,6 @@ export function LoginForm() {
       <button className="button button-primary" disabled={pending} type="submit">
         {pending ? "Signing in…" : "Sign in"}
       </button>
-      <p className="muted small section-spacing">
-        Use an account in your configured Supabase project. Account creation and invitations are the
-        next onboarding milestone.
-      </p>
     </form>
   );
 }

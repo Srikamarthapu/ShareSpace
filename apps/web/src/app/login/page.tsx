@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { LoginForm } from "@/features/auth/login-form";
+import { SignupForm } from "@/features/auth/signup-form";
 import { GithubLogin } from "@/features/auth/github-login";
 import { githubAvailability } from "@/features/auth/availability";
 import { loginErrorMessage } from "@/features/auth/callback";
@@ -31,8 +32,12 @@ export default async function Page({
         <>
           <GithubLogin availability={availability} />
           <details className="section-spacing">
-            <summary>Use an existing email account</summary>
+            <summary>Sign in with email</summary>
             <LoginForm />
+          </details>
+          <details className="section-spacing">
+            <summary>Create an account with email</summary>
+            <SignupForm />
           </details>
         </>
       ) : (

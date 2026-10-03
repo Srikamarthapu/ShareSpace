@@ -29,3 +29,8 @@ port = 55424
 
 [analytics]
 port = 55427
+
+# Invite previews work before sign-in, so the platform JWT check is off. The function verifies
+# the caller's session itself for every other action.
+[functions.teams]
+verify_jwt = false
