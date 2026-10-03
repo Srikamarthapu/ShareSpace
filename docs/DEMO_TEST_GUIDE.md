@@ -65,7 +65,19 @@ Open **Sessions** in each browser and select the new session. New visible events
 
 ## 5. Try coordination and privacy
 
-- Have Builder 2 start related work in the same repository, then submit a related prompt through Builder 1's adapter. Jev classifies possible overlap from authorized teammate evidence. Warnings are advisory; missing evidence/provider failures stay unknown.
+For a Jev warning demonstration:
+
+1. Both people must be members of the same team, have sharing enabled and unpaused, and pair their own agent to the same repository. Each local root must be that repository's actual checkout. Teammates can view sessions without cloning the repository, but capturing their own work requires a local checkout.
+2. Builder 1 submits this through their paired adapter: **"Implement a case-insensitive creator-name search filter on CreatorSignal's results page. First inspect the current implementation and propose a plan; do not edit files, run tests, or read secrets."** Wait until its session appears in ShareSpace.
+3. Builder 2 submits: **"Implement a creator-name search box for CreatorSignal's results page with case-insensitive filtering. Inspect the existing implementation and propose a plan; do not edit files, run tests, or read secrets."** Use their own Codex adapter command or a fresh Claude Code session with the configured prompt hook.
+4. Open **Warnings** after Builder 2's prompt. A successful overlap classification displays **Possible overlap**, the prompt excerpt, and a **Related session** link to Builder 1's evidence. No overlap or unavailable outcomes are shown explicitly. A warning is advisory and does not block either agent.
+
+The backend asks Jev whether the new prompt requests software implementation or repair, then whether it duplicates or conflicts with teammate work. It considers up to eight other-member sessions in the same repository with activity in the last 24 hours; ended sessions still qualify if their history is shared and retained. A read-only README summary is not an implementation request and can be skipped without storing a warning check. Sharing technology, files, or wording alone does not guarantee overlap. Existing Codex desktop conversations are not captured automatically.
+
+On the current free team, CreatorSignal occupies the single repository slot. To demonstrate ShareSpace code instead, register that repository and pair both local adapters to it; the existing CreatorSignal device does not switch repositories automatically.
+
+Other privacy checks:
+
 - Pause uploads in Settings and generate new activity. Resume afterward; dropped activity is not backfilled.
 - Mark an owned session private. It should disappear from the teammate's view. Change it back to shared to restore visibility.
 - Delete a session's history and confirm its transcript is removed.
@@ -86,4 +98,4 @@ Open **Sessions** in each browser and select the new session. New visible events
 - DeepSeek: `https://api.deepseek.com`, model `deepseek-flash`. The optional compaction helper is implemented and the provider call succeeded. It is not automatically attached to capture; it requires a future explicit summarization-consent flow.
 - Keys live in ignored `.env` locally, sensitive Vercel billing variables, and Supabase Edge Function secrets. None belongs in `NEXT_PUBLIC_*` except the Supabase publishable key and URL.
 - Backend: `teams`, `devices`, `sharing`, `ingest`, `overlap-check` on Supabase. Web/billing on Vercel.
-- No full hosted Checkout, fresh installed-agent, email-delivery, or two-user pass is claimed. Further tests were stopped at the builders' request. Report an error with its screen/action and message, without credentials or private transcript text.
+- One real paired Codex run captured six persisted events, and its transcript was opened in the hosted app. No full hosted Checkout, email-delivery, Claude capture, or two-user overlap pass is claimed. Report an error with its screen/action and message, without credentials or private transcript text.
