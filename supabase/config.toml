@@ -3,12 +3,16 @@ project_id = "builder-collaboration-workspace"
 
 [api]
 enabled = true
+# Ports moved off the defaults so this stack can run next to other local Supabase projects.
+port = 55421
 schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
 [db]
 major_version = 17
+port = 55422
+shadow_port = 55420
 
 [db.migrations]
 enabled = true
@@ -16,3 +20,12 @@ enabled = true
 [db.seed]
 enabled = true
 sql_paths = ["./seed.sql"]
+
+[studio]
+port = 55423
+
+[local_smtp]
+port = 55424
+
+[analytics]
+port = 55427

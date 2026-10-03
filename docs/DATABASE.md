@@ -1,27 +1,43 @@
-# Database foundation (WIP)
+# Database
 
-Use [PRD.md](../PRD.md) for the resolved v1 product scope. This database draft predates reconciliation and contains deferred task, source-index, resolution, handoff, and billing tables. Their presence does not make those features required; reconcile the schema through tested migrations before implementing v1.
+The v1 schema is the migration [`supabase/migrations/20261003212254_v1_schema.sql`](../supabase/migrations/20261003212254_v1_schema.sql). Row shapes match the shared contract in [`packages/core/src/v1.ts`](../packages/core/src/v1.ts), and [CONTRACT.md](CONTRACT.md) explains the flows. The old starter draft (`supabase/schema.sql`), with its task, source-index, resolution, handoff, and billing tables, was removed.
 
-The database starter is authored in [supabase/schema.sql](../supabase/schema.sql). Supabase applies only files in supabase/migrations/; this draft still needs to be moved into a filename created by the CLI command supabase migration new workspace_foundation. The installed /opt/homebrew/bin/supabase process is terminated by macOS (exit 137) for --version, init, and migration new. Docker's daemon is unavailable. The local config is handwritten and the schema is not yet applied or CLI-validated.
+## Access model
 
-No cloud project or cloud migration is part of this starter. The seed file is empty. Once the CLI works and the schema is promoted to a migration, run supabase start, supabase db reset, and supabase test db locally.
+- **Browser (`authenticated`):** SELECT only. RLS shows rows only to current members of the row's team (`private.is_team_member`). Cleanup notices are visible only to their own user. `public.storage_status()` returns the caller's own usage and the shared database size.
+- **Edge Functions (`service_role`):** all writes. They find the actor from the user JWT or device token and check membership on every call.
+- **`anon`:** no access.
+- **`private` schema:** invite tokens, device-token hashes, pairing requests, and usage counters. It is not exposed through the Data API, and only `service_role` can read it.
 
-## Schema and trust boundaries
+New tables are not exposed to the Data API automatically, so the migration grants access explicitly. When you add a table, enable RLS and add grants together.
 
-The public schema contains organizations, memberships, projects, invitations, device metadata, sessions, events, tasks, task revisions, source snapshots/chunks, checks, findings, resolutions, handoffs, coordination messages, audit events, billing event receipts, and sandbox payment records. Every project-scoped row carries organization and project IDs and uses composite foreign keys to enforce scope.
+## Tables
 
-Invitation and device token hashes live in private.invitation_secrets and private.device_credentials, outside the configured Data API schemas. Public invitation/device rows contain metadata only. billing_events stores event ID/type, checkout session ID, and receive time; it stores no raw Stripe payload. record_sandbox_payment(...) is invoker-rights, idempotent, accepts only checkout.session.completed / checkout.session.async_payment_succeeded and cs_test_ sessions, and is executable only by service_role. The webhook route must verify Stripe's signature, paid status, and livemode = false before calling it. This is a sandbox receipt foundation, not production billing or entitlement logic.
+| Table | Purpose |
+| --- | --- |
+| `teams`, `team_members`, `repositories` | One team per user (`unique (user_id)`), with `owner/name` repositories |
+| `devices` | Paired adapters; `revoked` devices stay for history |
+| `sharing_settings` | Per user per repository; no row means sharing is off |
+| `sessions` | One row per agent session; removed history leaves a tombstone row |
+| `session_events` | `id` is the adapter's stable event ID (deduplication); `ingest_id` is the catch-up cursor |
+| `overlap_checks` | One row per prompt (`unique (trigger_event_id)`) |
+| `cleanup_notices` | Tells a user that their history was removed |
 
-Authenticated users have read grants only, with row-level security limiting organizations/projects to current members, session content to its owner or teammates when shared, and sandbox payment rows to their owning user. Owners still cannot read another user's private session. Pausing sharing stops future capture in the endpoint while existing shared rows remain visible. Credentials, resolutions, handoff context packets, and billing event receipts have no authenticated read grant. Mutations remain future server transactions using service_role; keep that key server-only and validate user, device, and project scope before every write.
+Rows that belong to a team carry `team_id`, and composite foreign keys `(x_id, team_id)` keep a child row in the same team as its parent.
 
-Private helper functions use a fixed empty search path and derive the actor only from auth.uid(). They prevent recursive membership RLS. The private schema is omitted from the API schema list. Data API grants and RLS are separate controls; preserve both when adding tables.
+Realtime publishes `sessions`, `session_events`, `overlap_checks`, and `cleanup_notices`. The SELECT policies apply to each subscriber.
 
-## Deferred transactions and behavior
+## Local development and tests
 
-The schema does not implement atomic organization/first-owner/project creation, invite consumption/revocation, device pairing/rotation/revocation, bounded redacted ingestion, task intent registration, active-intent revision comparison, resolution consumption, last-owner protection, or account/session cleanup. Build each as a short server transaction. Do not hold a database lock while waiting for a model. Scope changes need immutable task revisions; overlap alerts deduplicate by ordered task pair and both revisions. Membership removal must revoke devices in the same transaction. Physical deletion must remove derived snippets/context and account for backups; a tombstone is not complete deletion.
+The local stack uses ports 55420–55427 (see `supabase/config.toml`), so it can run next to other local Supabase projects.
 
-Realtime channel authorization is separate. Broadcast minimal IDs/revisions and fetch sensitive content through an endpoint that rechecks current membership and sharing.
+```bash
+supabase start
+supabase db reset --local      # apply migrations
+supabase test db --local       # pgTAP tests in supabase/tests/database
+supabase db advisors --local
+```
 
-## Verification
+## Verified
 
-Schema application, CLI config validation, pgTAP, and local integration tests remain unverified. The available CLI exits 137 before startup, and Docker is unavailable. Current Supabase guidance checked: [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security), [API security](https://supabase.com/docs/guides/api/securing-your-api), and [database testing](https://supabase.com/docs/guides/local-development/testing/overview). The 2026-09-25 PostgreSQL breaking notice concerns ltree, btree_gist, and legacy pgcrypto encryption; this schema uses none of those extensions.
+On October 3, 2026, `supabase db reset --local` applied the migration, and `supabase test db --local` passed 24 access tests. `supabase db advisors --local` reported no warnings or errors. The migration has not been applied to the cloud project yet.
