@@ -256,7 +256,7 @@
   white-space: pre-wrap;
 }
 
-/* Agent replies are plain text. Only tool steps get a timeline dot. */
+/* Agent replies use the canvas surface. Only tool steps get a timeline dot. */
 .reply {
   padding: 2px 0;
 }
@@ -296,6 +296,90 @@
 }
 .text {
   white-space: pre-wrap;
+}
+.markdown {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.markdown > * + * {
+  margin-top: 10px;
+}
+.markdown :is(h2, h3, h4, h5, h6) {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.markdown ul,
+.markdown ol {
+  margin-bottom: 0;
+  padding-left: 22px;
+}
+.markdown ul {
+  list-style: disc;
+}
+.markdown ol {
+  list-style: decimal;
+}
+.markdown li + li {
+  margin-top: 5px;
+}
+.markdown li > p + p {
+  margin-top: 5px;
+}
+.markdown a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.markdown code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--surface-raised);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+.markdown pre {
+  max-width: 100%;
+  padding: 12px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  white-space: pre;
+  overflow-wrap: normal;
+}
+.markdown pre code {
+  padding: 0;
+  background: none;
+}
+.markdown blockquote {
+  margin-left: 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--border-control);
+  color: var(--muted);
+}
+.markdown table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.markdown th,
+.markdown td {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.markdown input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  min-height: 0;
+  margin: 0 6px 0 0;
+  padding: 0;
+  vertical-align: middle;
+  accent-color: var(--primary);
 }
 .truncated {
   margin-top: 2px;

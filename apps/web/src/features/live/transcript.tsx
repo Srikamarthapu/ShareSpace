@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ArrowLeft, MoreHorizontal } from "lucide-react";
 import { AGENT_LABELS, type EventRow, type SessionRow } from "@workspace/core";
 import type { WorkspaceData } from "./data";
+import { SessionMarkdown } from "@/features/sessions/markdown";
 import styles from "@/features/sessions/transcript.module.css";
 
 function when(value: string | null) {
@@ -72,12 +73,16 @@ function TranscriptEvent({ event }: { event: EventRow }) {
       {anchor}
       {event.kind === "user.message" ? (
         <div className={styles.user}>
-          {event.payload.text}
+          <div className={styles.markdown}>
+            <SessionMarkdown text={event.payload.text} />
+          </div>
           {annotations}
         </div>
       ) : event.kind === "assistant.message" ? (
         <div className={styles.reply}>
-          <div className={styles.text}>{event.payload.text}</div>
+          <div className={styles.markdown}>
+            <SessionMarkdown text={event.payload.text} />
+          </div>
           {annotations}
         </div>
       ) : event.kind === "tool.started" || event.kind === "tool.completed" ? (
