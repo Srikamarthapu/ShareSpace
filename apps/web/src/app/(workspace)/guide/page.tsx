@@ -1,6 +1,75 @@
-import Link from 'next/link';
-import { ArrowRight, Blocks, Database, Terminal } from 'lucide-react';
-export const metadata = { title: 'Build guide' };
+import Link from "next/link";
+import { ArrowRight, Users, Terminal, MessagesSquare, Database } from "lucide-react";
+export const metadata = { title: "Workspace guide" };
 export default function Page() {
-  return <><div className="page-heading"><div><div className="eyebrow">A FOUNDATION FOR TWO BUILDERS</div><h1>Your next chapter starts here.</h1><p>A working shell, explicit contracts, and room to build the real loop.</p></div></div><div className="guide-grid"><section className="guide-card"><Blocks size={24} aria-hidden="true" /><h2>Builder A / Workspace</h2><p>Own the interface and shared experience.</p><ul><li>Connect the screens to authorized data.</li><li>Build onboarding, invitations, and team controls.</li><li>Add durable activity recovery and session navigation.</li><li>Finish check resolution and context previews.</li></ul><code>apps/web/src/features/</code></section><section className="guide-card"><Terminal size={24} aria-hidden="true" /><h2>Builder B / Integration</h2><p>Own capture, evidence, and reliable delivery.</p><ul><li>Prove the Claude Code hook on the installed version.</li><li>Pair devices and ingest redacted events.</li><li>Build evidence retrieval and the Jev provider.</li><li>Validate the context handoff in a real agent.</li></ul><code>apps/adapter/ + supabase/</code></section></div><section className="guide-callout"><Database size={23} aria-hidden="true" /><div><h2>Agree on the seam first.</h2><p>Shared contracts live in <code>packages/core</code>. Review contract changes together before changing both consumers. Keep the first milestone to two builders, one repository, and one adapter.</p></div></section><section className="section-spacing"><h2>The first gate is a real loop.</h2><ol className="gate-list"><li><strong>Intercept</strong><span>Observe a real prompt before relevant tool activity.</span></li><li><strong>Share</strong><span>Show a real, intentionally shared tool event to the second builder.</span></li><li><strong>Coordinate</strong><span>Return a validated decision with actual evidence.</span></li><li><strong>Continue</strong><span>Deliver approved context at a supported prompt boundary.</span></li></ol><p className="understated-note">The sample flow does not satisfy this gate. Setup, sponsor integrations, acceptance criteria, and known gaps are documented in the repository.</p><Link className="button button-primary" href="/login">Open real workspace setup<ArrowRight size={15} aria-hidden="true" /></Link></section></>;
+  return (
+    <>
+      <div className="page-heading">
+        <div>
+          <div className="eyebrow">GETTING STARTED</div>
+          <h1>A shared view of the work.</h1>
+          <p>Two builders, one repository, and the context your agents choose to share.</p>
+        </div>
+      </div>
+      <div className="guide-grid">
+        <section className="guide-card">
+          <Users size={23} aria-hidden="true" />
+          <h2>Make room for your teammate</h2>
+          <p>
+            Name your team, link one repository, and create an invitation. An admin can rotate the
+            link or remove a member.
+          </p>
+          <Link className="text-link" href="/setup">
+            Try sample setup <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        </section>
+        <section className="guide-card">
+          <Terminal size={23} aria-hidden="true" />
+          <h2>Connect with intention</h2>
+          <p>
+            Review the device, repository, and capture capabilities before approval. Claude Code and
+            Codex use separate ShareSpace device credentials.
+          </p>
+          <Link className="text-link" href="/connect">
+            Review connections <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        </section>
+        <section className="guide-card">
+          <MessagesSquare size={23} aria-hidden="true" />
+          <h2>Catch up before a change</h2>
+          <p>
+            Read shared prompts, agent responses, and bounded tool excerpts. Warnings point to
+            related work and remain advisory. A missing check is unavailable.
+          </p>
+          <Link className="text-link" href="/sessions">
+            Explore session history <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        </section>
+        <section className="guide-card">
+          <Database size={23} aria-hidden="true" />
+          <h2>Keep sharing under control</h2>
+          <p>
+            Sharing starts off. Pause future uploads or keep a session private. Stored history uses
+            a sliding window; a separate deletion removes your shared history.
+          </p>
+          <Link className="text-link" href="/storage">
+            Review storage <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        </section>
+      </div>
+      <section className="guide-callout">
+        <div>
+          <h2>You’re exploring a sample workspace</h2>
+          <p>
+            Every invitation, device, event, and storage reading here is a browser-only example. No
+            real invitations are sent and no local agent sessions are uploaded. Sample controls let
+            you try the flow while the live workspace service is being connected.
+          </p>
+          <Link className="button button-primary" href="/login">
+            Sign in to your account <ArrowRight size={15} aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
+    </>
+  );
 }

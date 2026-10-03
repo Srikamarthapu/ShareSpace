@@ -13,7 +13,7 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:3000. The labeled sample workspace needs **no credentials**. The dashboard and transcripts use synthetic sessions for Claude Code and Codex. Sharing preferences stay in browser local storage; session history is a fixed sample snapshot. It never reads local conversations or contacts a provider.
+Open http://localhost:3000. The labeled sample workspace needs **no credentials**. The dashboard and transcripts use synthetic sessions for Claude Code and Codex. Setup, invitations, device and sharing preferences stay in browser local storage. Session history is synthetic, with local controls to exercise paging, reconnect, and deletion states. It never reads local conversations or contacts a provider.
 
 Turbopack disk persistence is disabled because its native cache failed on this external-volume workspace; in-memory caching remains available. The browser-test server uses Webpack. You can also run `npm run dev -- --webpack` for that local preview.
 
@@ -23,7 +23,7 @@ Turbopack disk persistence is disabled because its native cache failed on this e
 | --- | --- |
 | Product requirements | [`PRD.md`](PRD.md) — single resolved v1 specification |
 | Teammate ownership | [`docs/WORK_SPLIT.md`](docs/WORK_SPLIT.md) |
-| Web workspace | `apps/web/src/features` — session dashboard, transcripts, connection guidance, settings |
+| Web workspace | `apps/web/src/features` — setup, invitations, devices, sharing, sessions, warnings, and storage |
 | Real auth | `/login`, `/live`, `apps/web/src/lib/supabase` — separate from the sample store |
 | Local adapter | `apps/adapter` — consent-gated hook normalization, privacy filters, dry-run CLI |
 | Shared contracts | `packages/core` — Zod schemas, state/revision guards, evidence and provider policy |
@@ -45,13 +45,13 @@ npm run test:e2e
 npm run adapter -- --help
 ```
 
-Dependencies are pinned in package manifests and `package-lock.json`. Browser tests cover the sample dashboard on desktop and mobile Chromium, including filters, transcript navigation, accessibility, and horizontal overflow. They start a local server automatically; set `PLAYWRIGHT_BASE_URL` to reuse a running preview. GitHub CI and live multi-user verification remain pending.
+Dependencies are pinned in package manifests and `package-lock.json`. Browser tests cover the sample dashboard on desktop and mobile Chromium, including filters, transcript navigation, accessibility, and horizontal overflow. They start a local server automatically; set `PLAYWRIGHT_BASE_URL` to reuse a running preview. The GitHub workflow runs the same checks on branch pushes and pull requests. Live multi-user verification remains a separate integration gate; see [`docs/T1_PROGRESS.md`](docs/T1_PROGRESS.md).
 
 ## Sponsors and external services
 
 Supabase auth/data, Vercel deployment configuration, and Stripe sandbox Checkout/webhook foundations are included. All Stripe/billing work is deferred until after v1; the existing scaffold is outside the first-version acceptance path. Google AI Studio/Gemini is optional. The PRD’s Jev decision boundary remains separate; no Jev API or successful provider result is invented.
 
-Copy `apps/web/.env.example` to `apps/web/.env.local` only when configuring real services. **Never commit that file, real keys, device credentials, or shared transcripts.** Cloud resources have not been provisioned by this snapshot. Stripe is restricted to sandbox keys and sandbox receipts; no paid plan or production entitlement is implemented.
+Copy `apps/web/.env.example` to `apps/web/.env.local` only when configuring real services. **Never commit that file, real keys, device credentials, or shared transcripts.** The existing ShareSpace Supabase project and a Vercel preview project are configured. GitHub OAuth and the teammate 2 backend still need their integration gate; see [`docs/WEB_RELEASE.md`](docs/WEB_RELEASE.md). Stripe is restricted to sandbox keys and sandbox receipts; no paid plan or production entitlement is implemented.
 
 ## Scope and trust
 

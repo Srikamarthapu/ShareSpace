@@ -1,0 +1,18 @@
+# Keep credentials, local state, generated output and macOS resource forks out of uploads.
+.git
+.vercel
+**/.vercel
+**/.env*
+**/._*
+**/.DS_Store
+**/node_modules
+**/.next
+**/*.tsbuildinfo
+**/*.log
+test-results
+playwright-report
+coverage
+tmp
+.sharespace
+supabase/.temp
+supabase/.branches
