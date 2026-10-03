@@ -18,7 +18,7 @@ import {
   type ResolutionAccessRequest,
   type TaskActorRole,
   type TaskState,
-} from "./contracts.js";
+} from "./contracts";
 
 export interface CodeCoverageInput {
   checkedSourceIds: readonly string[];

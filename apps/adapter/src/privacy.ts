@@ -9,6 +9,9 @@ const SENSITIVE_KEY_PATTERN =
   /(?:^|_)(authorization|auth|api_?key|access_token|refresh_token|token|password|passwd|secret|private_key|credentials?|environment|env|transcript|cookie|raw_prompt|raw_command|tool_input|tool_response|command|arguments?|tool_args|command_args|stdout|stderr|output)(?:_|$)/i;
 
 const TOKEN_PATTERNS = [
+  /\bsk-[A-Za-z0-9]{16,}\b/g,
+  /\b[A-Z][A-Z0-9_]{2,}\s*=\s*(?:"[^"\r\n]*"|'[^'\r\n]*'|[^\s,;]+)/g,
+  /\b(?:ss[idp]-[0-9a-f]{64}|[sr]k_(?:test|live)_[A-Za-z0-9]+|sb_(?:secret|publishable)_[A-Za-z0-9_-]+)\b/g,
   /\bBearer\s+[A-Za-z0-9._~+/-]{8,}={0,2}/gi,
   /\b(?:sk-(?:ant|proj|live|test)-|github_pat_|gh[pousr]_|xox[baprs]-|npm_)[A-Za-z0-9_-]{12,}\b/gi,
   /\bAKIA[0-9A-Z]{16}\b/g,
@@ -37,6 +40,12 @@ export function redactText(input: string): { text: string; changed: boolean; tru
     changed ||= next !== text;
     text = next;
   }
+  const personalPaths = text.replace(
+    /(^|[\s"'=([{])\/(?:Users|home|Volumes|private|tmp)\/[^"'\r\n,;]+/g,
+    "$1[PATH]",
+  );
+  changed ||= personalPaths !== text;
+  text = personalPaths;
   const withoutPosixPaths = text.replace(POSIX_ABSOLUTE_PATH_PATTERN, "$1[PATH]");
   changed ||= withoutPosixPaths !== text;
   text = withoutPosixPaths;
@@ -69,6 +78,9 @@ export function isSensitiveRelativePath(relativePath: string): boolean {
   const components = relativePath.split("/").map((component) => component.toLowerCase());
   const sensitiveNames = new Set([
     ".aws",
+    ".sharespace",
+    ".claude",
+    ".codex",
     ".env",
     ".git",
     ".gnupg",

@@ -1,6 +1,4 @@
-import "@/features/workspace-controls/workspace-controls.css";
-import { Settings } from "@/features/settings/settings";
-export const metadata = { title: "Settings" };
+import { redirect } from "next/navigation";
 export default function Page() {
-  return <Settings />;
+  redirect("/live?view=settings");
 }

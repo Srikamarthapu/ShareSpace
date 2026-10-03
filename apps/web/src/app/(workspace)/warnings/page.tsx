@@ -1,7 +1,4 @@
-import { WarningFeed } from "@/features/warnings/warnings";
-
-export const metadata = { title: "Warnings" };
-
+import { redirect } from "next/navigation";
 export default function Page() {
-  return <WarningFeed />;
+  redirect("/live?view=warnings");
 }

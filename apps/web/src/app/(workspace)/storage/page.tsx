@@ -1,7 +1,4 @@
-import { Storage } from "@/features/storage/storage";
-
-export const metadata = { title: "History & storage" };
-
+import { redirect } from "next/navigation";
 export default function Page() {
-  return <Storage />;
+  redirect("/live?view=storage");
 }

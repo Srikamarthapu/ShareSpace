@@ -1,41 +1,55 @@
-# ShareSpace local adapter starter
+# ShareSpace local adapter
 
-This package is an opt-in, local-only adapter foundation for Claude Code. It has no event upload, device pairing, durable spool, preflight, or continuation delivery yet. `hook` validates and sanitizes an event in memory, then discards it. `preview` is the only command that prints a normalized event, and it does so locally after explicit consent is configured.
+The live adapter shares newly observed, bounded agent events after pairing and explicit local consent. It supports current Claude Code command hooks and an explicit read-only `codex exec --json` run. It never scans existing agent sessions, reads transcript files, reads shell history, or uploads raw hooks, tool arguments, commands, or environment values. The legacy `preview` and `hook` commands remain local-only.
 
-The adapter reads command-hook JSON from stdin. It supports `UserPromptSubmit` and `PostToolUse` only. It does not read Claude transcripts, environment variables, or shell history. `UserPromptSubmit` can also run for scheduled work and reports from background subagents, so review that scope before enabling it.
+## Pair a repository
 
-## Try the local CLI
-
-From the repository root:
+Install dependencies in the ShareSpace checkout. Use an absolute `--root` for the repository you want to share; npm workspace commands change their working directory, so the explicit root avoids ambiguity.
 
 ```sh
-npm run adapter -- help
 npm run adapter -- doctor
-cat apps/adapter/examples/claude-user-prompt-submit.json | npm run adapter -- preview
+npm run adapter -- pair --root /absolute/project --server https://YOUR_PROJECT.supabase.co --key YOUR_PUBLIC_PUBLISHABLE_KEY --repo owner/repository --agent claude_code --consent
 ```
 
-The final command parses a bounded synthetic hook event and reports that sharing is disabled. It will not print the prompt.
+`--consent` authorizes bounded, redacted current prompts, assistant replies, and tool metadata. The optional `--share-tool-excerpts` flag additionally allows text returned directly by a supported file tool for a validated repository file. Shell and MCP output remain metadata-only because their output can include environment values or files outside the repository.
 
-To inspect a normalized event, make a private copy of `examples/adapter.config.example.json`, set `repository_root` to a real repository directory, and record the consent timestamp and categories you approved. Keep that file out of Git. Then run:
+Approve the displayed code in the signed-in ShareSpace workspace, then enable sharing in Settings. Pairing writes the device token only to a private `device.json` under `~/.local/share/sharespace/`, with mode 600 and a private directory. Do not copy this file into Git or share it with a teammate. Each person pairs their own device. The repository UUID and device UUID from approval are checked against the server before capture and before each delivery attempt.
 
 ```sh
-cat apps/adapter/examples/claude-user-prompt-submit.json | npm run adapter -- preview --config /absolute/path/to/adapter.json
+npm run adapter -- live-status --config /absolute/private/device.json --root /absolute/project
 ```
 
-The fixture root is synthetic, so use a fixture with a `cwd` inside the configured repository before enabling consent. Tool paths must resolve under that root. Absolute paths are converted to relative paths; traversal, outside-root paths, and symlink escapes reject the event. Known secret and generated paths are omitted. Only a small allowlist of built-in tool names is kept; other names become `Other`.
+This verifies current access, sharing and storage state. `doctor` probes installed CLI versions and static readiness only; it does not contact providers, read credentials, or prove end-to-end operation.
 
-The default categories are all disabled. `user_prompts` allows a redacted excerpt of up to 280 characters. `tool_metadata` allows the normalized tool name, status, safe relative paths, and timing metadata. `tool_excerpts` is a separate opt-in within tool metadata; it allows a redacted excerpt of up to 280 characters. Tool arguments and Bash commands are never copied into the event. Pattern redaction helps with known token forms and absolute paths, but cannot guarantee detection of every secret.
+## Claude Code
 
-`doctor` checks only the local Node runtime and static adapter readiness. It never reads configuration or credentials and never prints environment values.
+```sh
+npm run --silent adapter -- hook-template --config /absolute/private/device.json --root /absolute/project
+```
 
-## Claude Code hook template
+The printed JSON is a template. Merge its `hooks` into the paired repository's `.claude/settings.local.json`, preserving existing settings and hooks. The command does not install or overwrite settings. It uses an absolute Node executable, the installed TSX loader and adapter entry point, so npm progress text cannot pollute Claude's JSON hook output. Moving the ShareSpace checkout requires regenerating the template.
 
-Run `npm run adapter -- hook-template` to print the same settings fragment in `examples/opt-in-claude-hooks.json`. Review it before manually adding it to `.claude/settings.local.json`. The template is not installed automatically. It invokes the local workspace CLI with a 5-second timeout. The handler emits no stdout because stdout from `UserPromptSubmit` can be added to Claude's context.
+Start a fresh Claude session in the paired repository. The hooks cover `UserPromptSubmit`, `PostToolUse`, `PostToolUseFailure`, `Stop`, and `SessionEnd`. `Stop` uses the current `last_assistant_message`; it does not open `transcript_path`. Prompt capture may include scheduled work and subagent reports because Claude also emits UserPromptSubmit for those. Only an advisory UserPromptSubmit response is written to hook stdout; capture failures continue the agent without blocking.
 
-The hook locations and stdin contract follow the current [Claude Code hooks reference](https://code.claude.com/docs/en/hooks): command hooks receive JSON on stdin; `UserPromptSubmit` includes `prompt`; and `PostToolUse` includes `tool_name`, `tool_input`, `tool_response`, and `tool_use_id`. This repo has not verified the exact behavior against an installed Claude Code version. The template is an example, not a claim of live capture or production compatibility.
+Current source fields follow the [Claude Code hooks reference](https://code.claude.com/docs/en/hooks). `prompt_id` requires Claude Code 2.1.196 or later. Hook IDs derived from `prompt_id` or `tool_use_id` deduplicate repeated current events. Older events lacking those fields use random IDs, so cross-invocation deduplication is not claimed. Network retries always reuse the exact same event batch and IDs. Local session metadata stores only IDs, sequence counters and a started flag, never transcript text.
 
-## Event IDs and boundaries
+## Codex
 
-Session IDs are transformed into deterministic UUIDs. Event IDs are deterministic when Claude supplies `prompt_id` or `tool_use_id`, which makes a retried hook input produce the same ID. When those stable source IDs are absent, an event ID is random so repeated identical prompts remain distinct. Claude's documented hook input has no event timestamp or monotonic source sequence, so `occurred_at` is the local normalization time and the adapter uses `source_sequence: 0` without claiming chronological ordering. Events include adapter version `0.1.0`; Claude Code's installed version is explicitly marked unverified because the hook payload does not supply it.
+Pair a separate device with `--agent codex`, then run a fresh, explicit session:
 
-The event envelope is validated by `@workspace/core` before `preview` prints it or before a future transport boundary accepts it. `EventTransport` is only a typed interface; no network implementation is provided.
+```sh
+npm run adapter -- codex --config /absolute/private/codex-device.json --root /absolute/project --prompt "Inspect this repository and explain where a shared counter would belong. Do not change files."
+```
+
+The wrapper invokes `codex exec --json --sandbox read-only --ephemeral`. It does not resume private or historical sessions. Normal assistant responses remain visible locally. Uploaded assistant messages are bounded and redacted; command events contain status and tool metadata only. Reasoning, arbitrary MCP objects, raw commands and command output are excluded. JSON lines exceeding 512 KiB are discarded with bounded memory. See the official [Codex non-interactive reference](https://developers.openai.com/codex/noninteractive/).
+
+## Privacy and delivery limits
+
+- Prompt/reply/file excerpts are at most 280 characters plus a truncation marker. Pattern redaction covers known credentials and absolute paths; it cannot detect every possible secret. Do not share sensitive prompts.
+- File paths must resolve inside the paired root. Traversal, outside-root paths, symlink escapes, secrets, agent/session directories and generated artifacts are rejected before an excerpt is generated.
+- Off, pause, unknown capacity, wrong scope or revoked access stop uploads. Ingest also enforces server-side membership, device scope and private-session state.
+- There is no offline transcript queue. A batch has one immediate retry after rechecking consent. Failed captures are dropped, never replayed when sharing is later re-enabled. A gap in session sequence numbers may therefore represent dropped capture.
+- Hook timeout is 60 seconds and the observer fails open. The per-session lock serializes current events; old locks are reclaimed only when their owning process no longer exists. Overlap checks are advisory and may return unknown.
+- The adapter provides partial capture, not complete native integration. Existing unit fixtures prove the conversion and privacy rules; actual installed-agent and two-user verification must be run separately.
+
+Local fixture tools are still available through `preview` and `hook`. Their separate legacy consent configuration is documented in `examples/adapter.config.example.json`; that file is not the live paired device configuration.

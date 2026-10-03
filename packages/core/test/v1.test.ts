@@ -205,3 +205,13 @@ describe("other rules", () => {
     }
   });
 });
+
+
+describe("paid repository action", () => {
+  it("accepts scoped repository creation and rejects body actor overrides", () => {
+    const request = { action: "add_repository", team_id: uuid(1), repository_name: "owner/second" };
+    expect(teamsRequestSchema.safeParse(request).success).toBe(true);
+    expect(teamsRequestSchema.safeParse({ ...request, user_id: uuid(2) }).success).toBe(false);
+    expect(teamsRequestSchema.safeParse({ ...request, repository_name: "owner/private/extra" }).success).toBe(false);
+  });
+});

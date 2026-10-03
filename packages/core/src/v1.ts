@@ -8,7 +8,7 @@ import {
   safeRelativePathSchema,
   serializedByteLength,
   uuidSchema,
-} from "./contracts.js";
+} from "./contracts";
 
 /**
  * ShareSpace v1 shared contract. See docs/CONTRACT.md for the flows.
@@ -118,6 +118,8 @@ export const teamsRequestSchema = z.discriminatedUnion("action", [
       repository_name: repositoryNameSchema,
     })
     .strict(),
+  /** Admin only. Free teams have one repository; an active Pro plan allows five. */
+  z.object({ action: z.literal("add_repository"), team_id: uuidSchema, repository_name: repositoryNameSchema }).strict(),
   /** Admin only. Returns the current link; null until the first rotate. */
   z.object({ action: z.literal("get_invite"), team_id: uuidSchema }).strict(),
   /** Admin only. Makes a new link; the old one stops working. Members stay. */
@@ -140,6 +142,7 @@ const inviteViewSchema = z
 
 export const teamsResponseSchemas = {
   create_team: z.object({ team: teamRowSchema, repository: repositoryRowSchema }).strict(),
+  add_repository: z.object({ repository: repositoryRowSchema }).strict(),
   get_invite: inviteViewSchema,
   rotate_invite: inviteViewSchema,
   preview_invite: z

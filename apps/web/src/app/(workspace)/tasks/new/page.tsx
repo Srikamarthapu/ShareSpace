@@ -1,3 +1,4 @@
-import { NewTask } from '@/features/workspace/new-task';
-export const metadata = { title: 'New task' };
-export default function Page() { return <NewTask />; }
+import { redirect } from "next/navigation";
+export default function Page() {
+  redirect("/live?view=sessions");
+}

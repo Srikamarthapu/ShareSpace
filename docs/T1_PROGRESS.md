@@ -2,6 +2,8 @@
 
 The dark ShareSpace design is approved and remains the web product baseline. This is a progress record, not a claim that the v1 release or live two-builder workflow is complete. See the [PRD](../PRD.md), [ownership split](WORK_SPLIT.md), [build plan](BUILD_PLAN.md), and [backend handoff](WEB_BACKEND_HANDOFF.md).
 
+This page retains historical teammate 1 evidence. Current real-demo setup and verification live in [DEMO_TEST_GUIDE.md](DEMO_TEST_GUIDE.md). The legacy Next.js projects/agent endpoints are now retired (HTTP 410); canonical privileged APIs run in Supabase Edge Functions.
+
 ## Production hosting — source `2ae4345`
 
 - Public URL: [sharespace-beta.vercel.app](https://sharespace-beta.vercel.app). Vercel reports deployment `dpl_49yDuP2Lw6RpHKopFPh3z5HFPb46` READY in production, and the domain resolves to that deployment.
@@ -14,7 +16,7 @@ The dark ShareSpace design is approved and remains the web product baseline. Thi
 
 This page retains the teammate 1 checkpoint evidence. The later consolidation with teammate 2 is recorded in [MERGE_VERIFICATION.md](MERGE_VERIFICATION.md).
 
-## Current status
+## Status at the teammate 1 checkpoint
 
 | Area | Status | Evidence and limit |
 | --- | --- | --- |

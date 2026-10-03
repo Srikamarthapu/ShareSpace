@@ -1,21 +1,26 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { redirect } from "next/navigation";
 import { LoginForm } from "@/features/auth/login-form";
 import { GithubLogin } from "@/features/auth/github-login";
 import { githubAvailability } from "@/features/auth/availability";
 import { loginErrorMessage } from "@/features/auth/callback";
-import { supabaseConfig } from "@/lib/supabase/config";
+import { safeWorkspaceReturn } from "@/features/auth/return-path";
+import { createSupabaseServer } from "@/lib/supabase/server";
 import { ThemeToggle } from "@/components/theme-toggle";
 export const metadata = { title: "Sign in" };
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }) {
-  const configured = !!supabaseConfig();
-  const availability = configured ? await githubAvailability() : "disabled";
-  const error = loginErrorMessage((await searchParams).error);
+  const params = await searchParams;
+  const returnTo = safeWorkspaceReturn(params.next);
+  const client = await createSupabaseServer();
+  const user = client ? await client.auth.getUser().catch(() => null) : null;
+  if (user?.data.user) redirect(returnTo);
+  const availability = client ? await githubAvailability() : "disabled";
+  const error = loginErrorMessage(params.error);
   return (
     <main className="login-panel">
       <div className="standalone-appearance">
@@ -24,38 +29,32 @@ export default async function Page({
       <Link href="/" className="brand">
         ShareSpace
       </Link>
-      <h1>Sign in to ShareSpace</h1>
-      <p>Your team’s shared context, in one place.</p>
+      <h1>Build with shared context.</h1>
+      <p>Sign in or create your account to join your team.</p>
       {error && (
         <p className="error-text" role="alert">
           {error}
         </p>
       )}
-      {configured ? (
+      {client ? (
         <>
-          <GithubLogin availability={availability} />
-          <details className="section-spacing">
-            <summary>Use an existing email account</summary>
-            <LoginForm />
-          </details>
+          <LoginForm returnTo={returnTo} />
+          {availability !== "disabled" && (
+            <div className="section-spacing">
+              <GithubLogin availability={availability} />
+            </div>
+          )}
         </>
       ) : (
         <div className="setup-panel">
           <h2>Sign-in is not configured</h2>
-          <p>
-            The project administrator needs to connect Supabase before real accounts are available.
-            You can explore the sample workspace in the meantime.
-          </p>
+          <p>The project administrator needs to connect Supabase before accounts are available.</p>
         </div>
       )}
       <p className="muted small section-spacing">
-        Signing in does not share your repository or agent sessions. You choose what to share after
-        setup.
+        Signing in does not share repository content. You choose when to share after connecting your
+        agent.
       </p>
-      <Link href="/" className="text-link">
-        <ArrowLeft size={14} aria-hidden="true" />
-        Explore the sample workspace
-      </Link>
     </main>
   );
 }

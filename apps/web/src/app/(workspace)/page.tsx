@@ -1,2 +1,4 @@
-import { Overview } from '@/features/workspace/overview';
-export default function Page() { return <Overview />; }
+import { redirect } from "next/navigation";
+export default function Page() {
+  redirect("/live?view=sessions");
+}

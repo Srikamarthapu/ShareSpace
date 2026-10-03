@@ -1,5 +1,7 @@
 # Sponsor integration foundations
 
+> Historical foundation notes. Current configuration and manual steps are in [the real demo guide](DEMO_TEST_GUIDE.md). Supabase migrations and all five Edge Functions are now deployed; Jev is configured; Stripe has a $20/month test subscription, signed webhook, and portal. DeepSeek's optional helper is implemented and connected to its provider, but automatic capture compaction is not wired. The older pending/one-time-price statements below apply only to the original scaffold.
+
 These are code foundations, not claims of live account setup or end-to-end verification.
 
 Use [PRD.md](../PRD.md) for the resolved v1 scope. It places the application backend in Supabase Edge Functions and requires both Claude Code and Codex. Stripe/billing is deferred until after v1; the sandbox instructions below describe existing scaffolding, not current build work. Gemini and the proposed DeepSeek summaries are optional.

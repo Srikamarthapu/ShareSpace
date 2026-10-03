@@ -12,7 +12,7 @@ test("theme preference survives navigation and reload and syncs between tabs", a
   await toggle.focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await page.getByRole("link", { name: "Sessions", exact: true }).first().click();
+  await page.goto("/login");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.reload();
   await expect(page.getByRole("button", { name: "Switch to light mode" })).toBeVisible();
@@ -57,12 +57,12 @@ test("theme control works when browser storage is blocked", async ({ page }) => 
 });
 
 for (const theme of ["light", "dark"] as const) {
-  test(`${theme} theme remains accessible on workspace and session surfaces`, async ({
+  test(`${theme} theme remains accessible on account access surfaces`, async ({
     page,
   }, testInfo) => {
     test.setTimeout(120_000);
     await page.emulateMedia({ colorScheme: theme });
-    for (const path of ["/", "/sessions/sample-sam", "/settings", "/storage", "/connect"]) {
+    for (const path of ["/", "/login"]) {
       await page.goto(path);
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
       await expect(page.getByRole("button", { name: /Switch to .* mode/ })).toBeVisible();
@@ -71,9 +71,9 @@ for (const theme of ["light", "dark"] as const) {
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
       ).toBe(true);
-      if (path === "/sessions/sample-sam") {
+      if (path === "/login") {
         await page.screenshot({
-          path: testInfo.outputPath(`session-${theme}.png`),
+          path: testInfo.outputPath(`login-${theme}.png`),
           fullPage: true,
         });
       }

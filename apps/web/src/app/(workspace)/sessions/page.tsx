@@ -1,3 +1,4 @@
-import { Sessions } from '@/features/sessions/sessions';
-export const metadata = { title: 'Sessions' };
-export default function Page() { return <Sessions />; }
+import { redirect } from "next/navigation";
+export default function Page() {
+  redirect("/live?view=sessions");
+}

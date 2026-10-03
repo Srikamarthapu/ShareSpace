@@ -12,7 +12,7 @@ Read `PRD.md` for the current product requirements, `docs/WORK_SPLIT.md` for own
 
 ## Scope and verification
 
-- Follow the resolved v1 PRD. Stripe and all billing work are deferred until after v1. DeepSeek summarization is a proposed optional extension, not a verified integration.
+- Follow the resolved v1 PRD and the later authorized test-demo scope in `docs/DEMO_TEST_GUIDE.md`. Stripe test subscriptions are now implemented. DeepSeek compaction is an optional helper, not automatically connected to capture.
 - Respect teammate ownership and keep shared Zod/API contract changes small and reviewed.
 - Keep sample data separate from live accounts. Keep secrets, raw hooks, private sessions, and source content out of logs and Git.
 - Run `npm run check` for code changes, `npm run test:e2e` for workflow changes, and database tests for migration changes. Use proportionate document checks for documentation-only edits.

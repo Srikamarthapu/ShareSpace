@@ -1,5 +1,7 @@
 # ShareSpace status — October 3, 2026
 
+> Superseded by [real demo progress](REAL_DEMO_PROGRESS.md) and [the demo walkthrough](DEMO_TEST_GUIDE.md). The records below describe previous commits, not the current deployment or integration status.
+
 ## Current frontend work
 
 Branch: `integration/combined-work`, combining teammate 1's feature branches and `mann/teammate2` through `72fddca`. The approved design is retained. The resolved planning documents were merged to `main` separately; this feature work has not been merged into `main`. See [MERGE_VERIFICATION.md](MERGE_VERIFICATION.md) for the before/after checks and remaining integration boundaries.

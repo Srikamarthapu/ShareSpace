@@ -29,3 +29,16 @@ port = 55424
 
 [analytics]
 port = 55427
+
+# Handlers verify user JWTs with auth.getUser; adapters use scoped device tokens.
+# Platform JWT verification cannot authenticate device tokens or public pairing.
+[functions.teams]
+verify_jwt = false
+[functions.devices]
+verify_jwt = false
+[functions.sharing]
+verify_jwt = false
+[functions.ingest]
+verify_jwt = false
+[functions.overlap-check]
+verify_jwt = false

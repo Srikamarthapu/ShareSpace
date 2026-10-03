@@ -1,3 +1,4 @@
-import { Coordination } from '@/features/coordination/coordination';
-export const metadata = { title: 'Coordination' };
-export default function Page() { return <Coordination />; }
+import { redirect } from "next/navigation";
+export default function Page() {
+  redirect("/live?view=warnings");
+}

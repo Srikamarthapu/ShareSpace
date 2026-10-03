@@ -107,8 +107,8 @@ select is(
 );
 select is(
   (select public.storage_status() -> 'database' ->> 'state'),
-  'unknown',
-  'storage_status treats a missing database measurement as unknown'
+  case when pg_database_size(current_database())>=400000000 then 'paused' when pg_database_size(current_database())>=350000000 then 'warning' else 'ok' end,
+  'storage_status reports a fresh database capacity measurement'
 );
 
 select throws_ok(

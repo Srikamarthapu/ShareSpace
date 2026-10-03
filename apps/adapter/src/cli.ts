@@ -1,61 +1,25 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { execFileSync } from "node:child_process";
 import { readAdapterConfig, resolveConfigPath } from "./config.js";
 import { MAX_HOOK_INPUT_BYTES, assertPathWithinRoot, resolveApprovedRoot } from "./privacy.js";
 import { normalizeHookInput, parseHookInput } from "./normalize.js";
-
-const HOOK_TEMPLATE = {
-  hooks: {
-    UserPromptSubmit: [
-      {
-        hooks: [
-          {
-            type: "command",
-            command: "npm",
-            args: [
-              "run",
-              "cli",
-              "--workspace",
-              "@workspace/adapter",
-              "--",
-              "hook",
-              "--config",
-              "${CLAUDE_PROJECT_DIR}/.sharespace/adapter.json",
-            ],
-            timeout: 5,
-          },
-        ],
-      },
-    ],
-    PostToolUse: [
-      {
-        matcher: "*",
-        hooks: [
-          {
-            type: "command",
-            command: "npm",
-            args: [
-              "run",
-              "cli",
-              "--workspace",
-              "@workspace/adapter",
-              "--",
-              "hook",
-              "--config",
-              "${CLAUDE_PROJECT_DIR}/.sharespace/adapter.json",
-            ],
-            timeout: 5,
-          },
-        ],
-      },
-    ],
-  },
-};
+import { liveMain } from "./live.js";
 
 function printHelp(): void {
-  process.stdout.write(`ShareSpace local adapter starter\n\n`);
+  process.stdout.write(`ShareSpace local adapter\n\n`);
   process.stdout.write(`Usage: npm run adapter -- <command> [options]\n\n`);
   process.stdout.write(`Commands:\n`);
+  process.stdout.write(
+    `  pair --root PATH --server URL --key PUBLIC_KEY --repo owner/name --agent claude_code|codex --consent\n`,
+  );
+  process.stdout.write(`  live-status --config PATH  Verify paired-device access and sharing\n`);
+  process.stdout.write(
+    `  claude-hook --config PATH  Share bounded current Claude hook events after opt-in\n`,
+  );
+  process.stdout.write(
+    `  codex --config PATH --prompt TEXT  Run and share a fresh read-only Codex session\n`,
+  );
   process.stdout.write(`  help                    Show this help\n`);
   process.stdout.write(
     `  doctor                  Check local runtime readiness without reading configuration or credentials\n`,
@@ -67,12 +31,14 @@ function printHelp(): void {
     `  hook --config PATH      Validate one hook input for an opt-in Claude command hook; emits no event content\n`,
   );
   process.stdout.write(
-    `  hook-template           Print an example settings snippet; does not install it\n\n`,
+    `  hook-template --config PATH [--root PATH]  Print live Claude hooks; does not install them\n\n`,
   );
   process.stdout.write(
     `Sharing is disabled unless an explicit consent configuration enables a category.\n`,
   );
-  process.stdout.write(`This starter has no network transport or durable event spool.\n`);
+  process.stdout.write(
+    `Live commands use the paired device. Preview/hook remain local-only legacy tools. No offline transcript replay.\n`,
+  );
 }
 
 function printDoctor(): void {
@@ -80,9 +46,27 @@ function printDoctor(): void {
   process.stdout.write(`Node.js: ${process.versions.node}\n`);
   process.stdout.write(`Configuration or credentials: not read\n`);
   process.stdout.write(`Sharing: disabled for doctor\n`);
-  process.stdout.write(`Hook API: docs checked; installed Claude Code version not verified\n`);
+  process.stdout.write(`Hook API: current docs checked; live behavior not tested by doctor\n`);
   process.stdout.write(`Local event preview: available\n`);
-  process.stdout.write(`Spool, pairing, preflight, and network delivery: not implemented\n`);
+  for (const binary of ["claude", "codex"]) {
+    let version = "not found or unavailable";
+    try {
+      const output = execFileSync(binary, ["--version"], {
+        encoding: "utf8",
+        timeout: 3000,
+        stdio: ["ignore", "pipe", "ignore"],
+      });
+      version =
+        output.match(/\d+\.\d+\.\d+(?:[-+][a-z0-9.-]+)?/i)?.[0] ?? "installed, version unknown";
+    } catch {
+      /* Read-only probe only. */
+    }
+    process.stdout.write(`${binary}: ${version}\n`);
+  }
+  process.stdout.write(
+    `Live pairing, bounded delivery and advisory overlap checks: implemented, provider access not tested by doctor\n`,
+  );
+  process.stdout.write(`Offline queue: intentionally absent; failed captures are dropped\n`);
 }
 
 function parseOptions(args: string[]): { configPath?: string } {
@@ -184,16 +168,13 @@ async function runHook(configPath: string | undefined): Promise<void> {
   // Intentionally no stdout or persistence: stdout can become prompt context on UserPromptSubmit.
 }
 
-function printHookTemplate(): void {
-  printJson(HOOK_TEMPLATE);
-  process.stderr.write(
-    "Template only. Add it to .claude/settings.local.json manually after reviewing consent and the command path. Exact compatibility with the installed Claude Code version is unverified.\n",
-  );
-}
-
 export async function main(args = process.argv.slice(2)): Promise<void> {
   const [command = "help", ...rest] = args;
   try {
+    if (["pair", "live-status", "claude-hook", "codex", "hook-template"].includes(command)) {
+      await liveMain(command, rest);
+      return;
+    }
     if (command === "help" || command === "--help" || command === "-h") {
       printHelp();
       return;
@@ -201,11 +182,6 @@ export async function main(args = process.argv.slice(2)): Promise<void> {
     if (command === "doctor") {
       if (rest.length > 0) throw new Error("doctor does not accept options.");
       printDoctor();
-      return;
-    }
-    if (command === "hook-template") {
-      if (rest.length > 0) throw new Error("hook-template does not accept options.");
-      printHookTemplate();
       return;
     }
     if (command === "preview") {
@@ -222,6 +198,10 @@ export async function main(args = process.argv.slice(2)): Promise<void> {
     }
     throw new Error(`Unknown command: ${command}`);
   } catch (error) {
+    if (command === "claude-hook") {
+      process.stderr.write("ShareSpace capture unavailable; agent continues.\n");
+      return;
+    }
     const message = error instanceof Error ? error.message : "Unexpected adapter error.";
     process.stderr.write(`adapter: ${message}\n`);
     process.exitCode = 2;
