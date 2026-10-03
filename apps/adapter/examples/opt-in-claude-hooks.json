@@ -1,0 +1,47 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npm",
+            "args": [
+              "run",
+              "cli",
+              "--workspace",
+              "@workspace/adapter",
+              "--",
+              "hook",
+              "--config",
+              "${CLAUDE_PROJECT_DIR}/.sharespace/adapter.json"
+            ],
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npm",
+            "args": [
+              "run",
+              "cli",
+              "--workspace",
+              "@workspace/adapter",
+              "--",
+              "hook",
+              "--config",
+              "${CLAUDE_PROJECT_DIR}/.sharespace/adapter.json"
+            ],
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

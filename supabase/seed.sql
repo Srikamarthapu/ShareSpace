@@ -1,0 +1,2 @@
+-- Deliberately empty. Use synthetic rollback-only fixtures in database tests.
+-- Do not seed real accounts, invitations, credentials, or repository content.

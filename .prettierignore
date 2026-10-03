@@ -1,0 +1,10 @@
+node_modules
+.next
+package-lock.json
+supabase/migrations
+supabase/tests
+supabase/config.toml
+test-results
+playwright-report
+*.tsbuildinfo
+**/._*

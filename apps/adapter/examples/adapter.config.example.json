@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "repository_root": "/absolute/path/to/your/repository",
+  "consent": {
+    "enabled": false,
+    "version": 1,
+    "consented_at": null,
+    "categories": {
+      "user_prompts": false,
+      "tool_metadata": false,
+      "tool_excerpts": false
+    }
+  }
+}

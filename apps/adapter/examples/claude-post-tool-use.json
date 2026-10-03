@@ -1,0 +1,17 @@
+{
+  "session_id": "synthetic-claude-session",
+  "prompt_id": "550e8400-e29b-41d4-a716-446655440000",
+  "cwd": "/synthetic/repository",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "/synthetic/repository/src/example.ts",
+    "content": "export const demo = true;"
+  },
+  "tool_response": {
+    "filePath": "/synthetic/repository/src/example.ts",
+    "type": "create"
+  },
+  "tool_use_id": "toolu_synthetic_0001",
+  "duration_ms": 5
+}
