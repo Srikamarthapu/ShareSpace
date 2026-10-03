@@ -282,6 +282,7 @@ export const sharingSettingRowSchema = z
   .object({
     user_id: uuidSchema,
     repository_id: uuidSchema,
+    team_id: uuidSchema,
     enabled: z.boolean(),
     paused: z.boolean(),
     updated_at: isoTimestampSchema,
