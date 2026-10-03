@@ -702,13 +702,6 @@ export function reduceWorkspaceControls(
         true,
       );
     }
-    case "preview-as":
-    case "accept-invite":
-      return transition(
-        state,
-        "invalid",
-        "This action cannot be applied in the current sample state.",
-      );
   }
 }
 
