@@ -37,7 +37,17 @@ test("reconnect persists fixture catch-up and suppresses repeated event IDs", as
 
   await page.getByRole("button", { name: "Reconnect and catch up" }).click();
   await expect(page.getByTestId("catchup-result")).toContainText("Recovered 2 sample events");
-  await page.getByRole("button", { name: "New sample events · Jump to latest" }).click();
+  // Readers already at the bottom follow automatically. Otherwise the app
+  // keeps their reading position and offers the explicit jump action.
+  const jumpToLatest = page.getByRole("button", { name: "New sample events · Jump to latest" });
+  await expect
+    .poll(
+      async () =>
+        (await jumpToLatest.isVisible()) ||
+        (await page.locator('[data-history-event="sam-catchup-02"]').isVisible()),
+    )
+    .toBe(true);
+  if (await jumpToLatest.isVisible()) await jumpToLatest.click();
   await expect(page.locator('[data-history-event="sam-catchup-01"]')).toBeVisible();
   await expect(page.locator('[data-history-event="sam-catchup-02"]')).toBeVisible();
 

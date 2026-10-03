@@ -83,6 +83,7 @@ select is(
 -- a1: sees team A only
 
 set local role authenticated;
+set local request.jwt.claim.sub = '00000000-0000-4000-8000-0000000000a1';
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-0000000000a1","role":"authenticated"}';
 
 select is((select count(*)::int from public.teams), 1, 'a1 sees one team');
@@ -134,6 +135,7 @@ select throws_ok(
 -- ---------------------------------------------------------------------------
 -- a2: same team, but not the notice owner
 
+set local request.jwt.claim.sub = '00000000-0000-4000-8000-0000000000a2';
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-0000000000a2","role":"authenticated"}';
 
 select is((select count(*)::int from public.cleanup_notices), 0, 'a2 cannot see a1 notices');
@@ -148,6 +150,8 @@ select is(
 
 reset role;
 set local role anon;
+set local request.jwt.claim.sub = '';
+set local request.jwt.claims = '{}';
 select throws_ok($$ select * from public.sessions $$, '42501', null, 'anon cannot read sessions');
 select throws_ok(
   $$ select public.storage_status() $$, '42501', null, 'anon cannot call storage_status'
@@ -159,6 +163,7 @@ select throws_ok(
 reset role;
 delete from public.team_members where user_id = '00000000-0000-4000-8000-0000000000a2';
 set local role authenticated;
+set local request.jwt.claim.sub = '00000000-0000-4000-8000-0000000000a2';
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-0000000000a2","role":"authenticated"}';
 select is((select count(*)::int from public.session_events), 0, 'a removed member sees no events');
 

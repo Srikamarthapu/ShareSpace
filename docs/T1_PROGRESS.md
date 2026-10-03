@@ -2,6 +2,8 @@
 
 The dark ShareSpace design is approved and remains the web product baseline. This is a progress record, not a claim that the v1 release or live two-builder workflow is complete. See the [PRD](../PRD.md), [ownership split](WORK_SPLIT.md), [build plan](BUILD_PLAN.md), and [backend handoff](WEB_BACKEND_HANDOFF.md).
 
+This page retains the teammate 1 checkpoint evidence. The later consolidation with teammate 2 is recorded in [MERGE_VERIFICATION.md](MERGE_VERIFICATION.md).
+
 ## Current status
 
 | Area | Status | Evidence and limit |
@@ -11,9 +13,9 @@ The dark ShareSpace design is approved and remains the web product baseline. Thi
 | Team/setup, invitation, device, privacy/sharing, session/history, warning, and storage UI flows | Implemented and locally verified against labeled fixtures | Includes per-member consent, reusable/rotated/full invites, pairing ownership, transcript pagination and reconnect deduplication, access revocation, own-history deletion, warning evidence links, and unknown/near-limit storage states. No real backend mutation is implied. |
 | Supabase web authentication | Implemented locally; live provider flow unverified | GitHub OAuth PKCE and callback handling land in the authenticated workspace. The inspected Supabase Auth settings reported GitHub disabled; provider credentials and allowed redirects must be configured before an end-to-end login can pass. |
 | Real project reads | Implemented as a narrow foundation | `/live` and `GET /api/projects` read member-visible project names through the authenticated Supabase client. No team or repository mutations are available. |
-| Supabase backend | Blocked on teammate 2 | The connected project `cdrkkszcrfznhsgvfdfi` had no public tables, functions, or migrations on October 3, 2026. `supabase/schema.sql` is a draft, not an applied migration. |
+| Supabase backend | Contract and local migration merged; live wiring pending | The connected cloud project `cdrkkszcrfznhsgvfdfi` had no public tables, functions, or migrations at inspection. The combined branch now includes `supabase/migrations/20261003212254_v1_schema.sql`; the old draft was removed. This merge does not deploy it. |
 | Vercel preview | Deployed; hosted HTTP smoke checks passed | [Protected preview](https://sharespace-qh2lugwie-swis-projects-066d8b1d.vercel.app), source `a119f37`. Home and login returned 200 with the expected sample and disabled-GitHub states; signed-out `/live` returned the Next.js redirect to `/login`. This is not hosted interactive or live-provider verification. |
-| CI workflow | Running for source `a119f37` | [GitHub run](https://github.com/Srikamarthapu/ShareSpace/actions/runs/37154604116): workspace checks passed; browser checks were still running when this record was written. `.github/workflows/check.yml` runs on pull requests and branch pushes without merging or deploying. |
+| CI workflow | Teammate 1 checkpoint passed | [GitHub run for `899f688`](https://github.com/Srikamarthapu/ShareSpace/actions/runs/37154974792) passed. That checkpoint adds documentation to source `a119f37`; it is not CI evidence for the later combined branch. The workflow runs on pull requests and branch pushes without merging or deploying. |
 
 ## Checkpoint and local verification
 
