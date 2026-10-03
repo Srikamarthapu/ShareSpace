@@ -38,11 +38,11 @@ export type SampleEvent = {
   time: string; title: string; content: string; file?: string;
 };
 export const sampleEvents: SampleEvent[] = [
-  { id: 'sam-request', sessionId: 'sample-sam', role: 'user', time: '10:32', title: 'Sam registered a new task', content: 'Build the saved-college API. Each person should be able to save, list, and remove their own colleges. I’ll own the backend and access checks.' },
-  { id: 'sam-response', sessionId: 'sample-sam', role: 'assistant', time: '10:33', title: 'Claude outlined the API scope', content: 'I’ll start with the API and persistence. The planned interface is GET /api/saved and POST /api/saved with a collegeId. The frontend remains outside this task.' },
-  { id: 'sam-tool', sessionId: 'sample-sam', role: 'tool', time: '10:35', title: 'Sam’s agent inspected the route structure', content: '{\n  "tool_name": "Read",\n  "relative_paths": ["app/api/colleges/route.ts"],\n  "status": "success",\n  "result_excerpt": "Existing college search route",\n  "redacted": true\n}', file: 'app/api/colleges/route.ts' },
-  { id: 'sri-request', sessionId: 'sample-sri', role: 'user', time: '10:38', title: 'Sri proposed a personal shortlist', content: 'Build a personal shortlist so people can save colleges and manage their choices. Include the backend needed to store each person’s list.' },
-  { id: 'sri-response', sessionId: 'sample-sri', role: 'assistant', time: '10:38', title: 'A sample coordination check is ready', content: 'Sam’s saved-college task appears to cover the persistence and API for this outcome. Review the scope before starting. This is a scripted sample finding, not a live provider result.' },
+  { id: 'sam-request', sessionId: 'sample-sam', role: 'user', time: '10:32', title: 'Sam shared a prompt', content: 'Build the saved-college API. Each person should be able to save, list, and remove their own colleges. I’ll own the backend and access checks.' },
+  { id: 'sam-response', sessionId: 'sample-sam', role: 'assistant', time: '10:33', title: 'Claude Code outlined the sample API scope', content: 'The sample response outlines API and persistence. The planned interface is GET /api/saved and POST /api/saved with a collegeId. The frontend is outside this request.' },
+  { id: 'sam-tool', sessionId: 'sample-sam', role: 'tool', time: '10:35', title: 'Redacted sample tool activity', content: '{\n  "tool_name": "Read",\n  "relative_paths": ["app/api/colleges/route.ts"],\n  "status": "success",\n  "result_excerpt": "Existing college search route",\n  "redacted": true\n}', file: 'app/api/colleges/route.ts' },
+  { id: 'sri-request', sessionId: 'sample-sri', role: 'user', time: '10:38', title: 'Sri shared a prompt', content: 'Build a personal shortlist so people can save colleges and manage their choices. Include the backend needed to store each person’s list.' },
+  { id: 'sri-response', sessionId: 'sample-sri', role: 'assistant', time: '10:38', title: 'Sample advisory generated', content: 'The sample advisory notes that Sam’s saved-college work includes persistence and API support. Consider the scope overlap before starting. This scripted sample is not a live provider result.' },
 ];
 
 export function parseSampleState(raw: string | null): SampleState {

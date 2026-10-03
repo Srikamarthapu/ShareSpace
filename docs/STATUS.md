@@ -1,4 +1,24 @@
-# Snapshot status — October 3, 2026
+# ShareSpace status — October 3, 2026
+
+## Current frontend work
+
+Branch: `feat/session-dashboard`. The resolved planning documents were merged to `main` separately. Feature work is paused for the requested design revision.
+
+- Session dashboard with builder and agent filters, prompt/branch search, linked transcripts, and sample advisory context. Claude Code and Codex have distinct session labels.
+- Dark charcoal design with restrained green actions, fine dividers, session rows, compact navigation, and consistent supporting-page styles. Design reference: the restrained typography, navigation, and surface treatment of Supabase; this is not a clone.
+- Sample data and live accounts remain separate. No backend contracts, adapters, database policy, or provider integrations were changed.
+- Fixed snapshot timestamps avoid presenting sample events as current live activity. Missing analysis remains unavailable.
+- Desktop/mobile Chromium checks cover the dashboard, sessions, transcript, connections, settings, and login, including Axe and overflow checks.
+- `npm run check`: passed (lint, all workspace type checks, 34 unit tests, production build).
+- `npm run test:e2e` against the local preview: 23 passed, with the mobile-only overflow case intentionally skipped on desktop. Final session-link accessibility changes also passed all four desktop/mobile navigation checks.
+- Browser screenshots inspected at desktop and mobile sizes; automated Axe scans reported no violations on the six covered surfaces. This is not a claim of complete accessibility certification or live-provider verification.
+- Native Turbopack disk persistence is disabled after reproducible cache errors on the external volume. The preview remains on Webpack; production builds use Turbopack without disk persistence.
+
+Next teammate 1 work resumes after design feedback: real onboarding, invitation/pairing screens, and live session reads after the shared contract is reviewed with teammate 2. Stripe remains deferred.
+
+## Original checkpoint record
+
+The sections below describe the initial checkpoint and are retained as historical context, not current frontend verification.
 
 The user requested an immediate repository checkpoint before reconciling competing PRDs. This document describes that initial snapshot, not release completion. The resolved product specification is [PRD.md](../PRD.md); ownership is in [WORK_SPLIT.md](WORK_SPLIT.md), delivery gates in [BUILD_PLAN.md](BUILD_PLAN.md), and the historical discussion in [DECISIONS.md](DECISIONS.md). Planning updates have not implemented those features.
 

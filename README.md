@@ -13,7 +13,9 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:3000. The labeled sample workspace needs **no credentials**. Sample tasks, decisions, and preferences stay in browser local storage. Reset them in Settings. It never reads local conversations or contacts a provider.
+Open http://localhost:3000. The labeled sample workspace needs **no credentials**. The dashboard and transcripts use synthetic sessions for Claude Code and Codex. Sharing preferences stay in browser local storage; session history is a fixed sample snapshot. It never reads local conversations or contacts a provider.
+
+Turbopack disk persistence is disabled because its native cache failed on this external-volume workspace; in-memory caching remains available. The browser-test server uses Webpack. You can also run `npm run dev -- --webpack` for that local preview.
 
 ## Repository map
 
@@ -21,7 +23,7 @@ Open http://localhost:3000. The labeled sample workspace needs **no credentials*
 | --- | --- |
 | Product requirements | [`PRD.md`](PRD.md) — single resolved v1 specification |
 | Teammate ownership | [`docs/WORK_SPLIT.md`](docs/WORK_SPLIT.md) |
-| Web workspace | `apps/web/src/features` — overview, sessions, coordination, connection guidance, settings |
+| Web workspace | `apps/web/src/features` — session dashboard, transcripts, connection guidance, settings |
 | Real auth | `/login`, `/live`, `apps/web/src/lib/supabase` — separate from the sample store |
 | Local adapter | `apps/adapter` — consent-gated hook normalization, privacy filters, dry-run CLI |
 | Shared contracts | `packages/core` — Zod schemas, state/revision guards, evidence and provider policy |
@@ -38,10 +40,12 @@ npm run typecheck
 npm test
 npm run lint
 npm run build
+npx playwright install chromium
+npm run test:e2e
 npm run adapter -- --help
 ```
 
-Dependencies are pinned in package manifests and `package-lock.json`. Browser E2E configuration, GitHub CI, and live multi-user verification are still pending in this snapshot.
+Dependencies are pinned in package manifests and `package-lock.json`. Browser tests cover the sample dashboard on desktop and mobile Chromium, including filters, transcript navigation, accessibility, and horizontal overflow. They start a local server automatically; set `PLAYWRIGHT_BASE_URL` to reuse a running preview. GitHub CI and live multi-user verification remain pending.
 
 ## Sponsors and external services
 
