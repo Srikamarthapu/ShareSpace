@@ -90,36 +90,128 @@ function makeFixtureEvent(
   });
 }
 
+type ScriptedTool = { name: string; target: string; output: string; command?: boolean };
+type ScriptedEvent =
+  { role: "user" | "assistant"; content: string } | { role: "tool"; tool: ScriptedTool };
+
+// A short scripted conversation. Tool steps keep their redacted-activity titles.
+const samScript: ScriptedEvent[] = [
+  {
+    role: "assistant",
+    content:
+      "I’ll start by reading the shared database client so the new endpoints match the existing routes.",
+  },
+  {
+    role: "tool",
+    tool: { name: "Read", target: "lib/db.ts", output: "Exports a shared Postgres client." },
+  },
+  {
+    role: "assistant",
+    content:
+      "The routes use the shared client and return JSON. I’ll store saved colleges in a table keyed by user and college.",
+  },
+  {
+    role: "user",
+    content: "Sounds good. Make sure people can only see and delete their own saved colleges.",
+  },
+  {
+    role: "tool",
+    tool: {
+      name: "Write",
+      target: "lib/saved-colleges.ts",
+      output: "Created save, list, and remove helpers scoped to the user ID.",
+    },
+  },
+  {
+    role: "assistant",
+    content:
+      "Every query now filters by the signed-in user’s ID, so one person can’t read or remove another person’s list.",
+  },
+  { role: "assistant", content: "Next I’ll add GET, POST, and DELETE handlers." },
+  {
+    role: "tool",
+    tool: {
+      name: "Write",
+      target: "app/api/saved/route.ts",
+      output: "Added GET, POST, and DELETE handlers.",
+    },
+  },
+  {
+    role: "user",
+    content:
+      "Can you also return the college name with each saved item? The shortlist page needs it.",
+  },
+  {
+    role: "assistant",
+    content: "Yes. I’ll join the colleges table in the list query so each item includes its name.",
+  },
+  {
+    role: "tool",
+    tool: {
+      name: "Edit",
+      target: "lib/saved-colleges.ts",
+      output: "The list query now joins colleges and returns the name.",
+    },
+  },
+  {
+    role: "assistant",
+    content: "Done. GET /api/saved now returns collegeId, name, and savedAt for each item.",
+  },
+  { role: "user", content: "Great. Add tests for the access checks, then run them." },
+  {
+    role: "tool",
+    tool: {
+      name: "Bash",
+      target: "npm test -- saved-colleges",
+      output: "6 passed",
+      command: true,
+    },
+  },
+  {
+    role: "assistant",
+    content:
+      "All 6 tests pass. They cover saving, listing, removing, duplicate saves, and blocking access to another person’s list.",
+  },
+  {
+    role: "assistant",
+    content:
+      "The saved-college API is ready: save, list, and remove, each limited to the signed-in user. The frontend is outside this request.",
+  },
+];
+
 const historyFixtureEvents: HistoryEvent[] = [
   ...sampleEvents.map(asHistoryEvent),
-  ...Array.from({ length: 16 }, (_, index) => {
+  ...samScript.map((step, index) => {
     const number = String(index + 1).padStart(2, "0");
-    const isTool = index % 3 === 1;
+    if (step.role === "tool")
+      return makeFixtureEvent(
+        "sam-history-" + number,
+        index + 1,
+        "tool",
+        "Redacted sample tool activity · " + number,
+        JSON.stringify(
+          {
+            tool_name: step.tool.name,
+            status: "success",
+            [step.tool.command ? "command" : "relative_path"]: step.tool.target,
+            result_excerpt: step.tool.output,
+            redacted: true,
+          },
+          null,
+          2,
+        ),
+        {
+          file: step.tool.command ? "tests/saved-colleges.test.ts" : step.tool.target,
+          redacted: true,
+        },
+      );
     return makeFixtureEvent(
       "sam-history-" + number,
       index + 1,
-      isTool ? "tool" : "assistant",
-      isTool ? "Redacted sample tool activity · " + number : "Sample progress note · " + number,
-      isTool
-        ? JSON.stringify(
-            {
-              tool_name: "Read",
-              status: "success",
-              relative_path: "app/api/saved/route.ts",
-              result_excerpt: "Bounded sample excerpt",
-              redacted: true,
-            },
-            null,
-            2,
-          )
-        : "Fixture activity " +
-            number +
-            ": checked the saved-college flow and recorded a short, user-visible update.",
-      isTool
-        ? { file: "app/api/saved/route.ts", redacted: true }
-        : index === 14
-          ? { truncated: true }
-          : {},
+      step.role,
+      step.role === "user" ? "Sam’s follow-up · " + number : "Claude Code response · " + number,
+      step.content,
+      index === 14 ? { truncated: true } : {},
     );
   }),
 ];

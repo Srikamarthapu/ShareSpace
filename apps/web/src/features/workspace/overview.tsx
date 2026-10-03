@@ -47,7 +47,7 @@ export function Overview() {
           <h1>Workspace</h1>
           <p>Shared sessions. A little context before your next change.</p>
         </div>
-        <Link className="button button-primary" href="/connect">
+        <Link className="button button-primary" href="/settings/connections">
           <Plus size={16} aria-hidden="true" />
           Connect agent
         </Link>

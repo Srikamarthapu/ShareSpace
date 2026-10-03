@@ -31,9 +31,8 @@ test("warning details link to stable sample events without inventing a score", a
 test("unknown capacity stays unknown and deleting own sample history hides linked warnings", async ({
   page,
 }) => {
-  await page.goto("/storage");
-  await expect(page.getByRole("heading", { name: "History & storage" })).toBeVisible();
-  await expect(page.getByText(/not actual storage measurements/i)).toBeVisible();
+  await page.goto("/settings/storage");
+  await expect(page.getByRole("heading", { name: "Usage" })).toBeVisible();
 
   await page.getByText("Preview another sample scenario").click();
   await page.getByLabel("Scenario").selectOption("unknown");
@@ -44,7 +43,7 @@ test("unknown capacity stays unknown and deleting own sample history hides linke
   await page.getByText("Review deletion").click();
   await page.getByRole("button", { name: "Confirm deletion" }).click();
   await expect(
-    page.getByRole("status").filter({ hasText: "sample history was removed" }),
+    page.getByRole("status").filter({ hasText: "Your session history was removed" }),
   ).toBeVisible();
 
   await page.goto("/warnings/college-scope");

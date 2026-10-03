@@ -11,11 +11,9 @@ import {
   LockKeyhole,
   Play,
   RotateCcw,
-  ShieldCheck,
   Trash2,
-  Users,
 } from "lucide-react";
-import { Avatar } from "@/components/ui";
+import { MemberAvatar } from "@/components/ui";
 import { resetSampleHistory } from "@/features/history/history-store";
 import { useWorkspace } from "@/components/workspace-provider";
 import {
@@ -84,14 +82,6 @@ export function Settings() {
 
   return (
     <>
-      <div className="page-heading">
-        <div>
-          <div className="eyebrow">TEAM AND SHARING CONTROLS</div>
-          <h1>Settings</h1>
-          <p>Manage the sample team, invitations, device access, and sharing choices.</p>
-        </div>
-        <span className="controls-sample-tag">Browser sample only</span>
-      </div>
       <p className="controls-global-notice" role="status" aria-live="polite">
         {notice}
       </p>
@@ -99,43 +89,29 @@ export function Settings() {
       <div className="controls-settings-stack">
         <section className="controls-settings-section" aria-labelledby="team-section-title">
           <div className="controls-section-intro">
-            <span className="controls-section-icon">
-              <Users size={18} aria-hidden="true" />
-            </span>
-            <h2 id="team-section-title">Team and repository</h2>
-            <p>
-              One sample team and one linked repository. Edit the setup without changing live
-              accounts.
-            </p>
+            <h2 id="team-section-title">Team</h2>
           </div>
           <div className="controls-section-content">
             <div className="controls-team-summary">
               <div>
-                <span className="controls-kicker">SAMPLE TEAM</span>
                 <h3>{state.teamName}</h3>
+                <div className="controls-team-bubbles" role="group" aria-label="Team members">
+                  {state.members.map((member) => (
+                    <MemberAvatar key={member.id} {...member} small />
+                  ))}
+                </div>
               </div>
               <code>{state.repositoryName}</code>
             </div>
             <Link className="text-link" href="/setup">
-              Edit team setup <ArrowRight size={14} aria-hidden="true" />
+              Edit <ArrowRight size={14} aria-hidden="true" />
             </Link>
-            <div className="controls-notice controls-notice-neutral">
-              <ShieldCheck size={16} aria-hidden="true" />
-              <span>
-                The sample allows at most two members and one repository. No repository is read or
-                connected here.
-              </span>
-            </div>
           </div>
         </section>
 
         <section className="controls-settings-section" aria-labelledby="invite-section-title">
           <div className="controls-section-intro">
-            <span className="controls-section-icon">
-              <Link2 size={18} aria-hidden="true" />
-            </span>
-            <h2 id="invite-section-title">Reusable invitation</h2>
-            <p>Create a sample link, copy it, and rotate it to invalidate the earlier link.</p>
+            <h2 id="invite-section-title">Invite link</h2>
           </div>
           <div className="controls-section-content">
             {state.inviteToken ? (
@@ -146,12 +122,7 @@ export function Settings() {
                   className="controls-link-input"
                   value={invitePath}
                   readOnly
-                  aria-describedby="invite-link-help"
                 />
-                <p id="invite-link-help" className="controls-field-help">
-                  Reusable in this browser sample. Rotation prevents future joins through the prior
-                  sample link.
-                </p>
                 <div className="controls-button-row">
                   <button
                     type="button"
@@ -181,93 +152,51 @@ export function Settings() {
                 </div>
               </>
             ) : (
-              <div className="controls-empty-invite">
-                <p>No sample invitation is active yet. Create one to open the join flow.</p>
-                <button
-                  type="button"
-                  className="button button-primary"
-                  onClick={createInvite}
-                  disabled={!canAdmin}
-                >
-                  <Link2 size={15} aria-hidden="true" />
-                  Create reusable invite
-                </button>
-              </div>
+              <button
+                type="button"
+                className="button button-primary"
+                onClick={createInvite}
+                disabled={!canAdmin}
+              >
+                <Link2 size={15} aria-hidden="true" />
+                Create reusable invite
+              </button>
             )}
             <p className="controls-status-line" role="status" aria-live="polite">
               {copyStatus}
             </p>
             {!canAdmin ? (
-              <p className="controls-permission-note">
-                Member preview cannot create or rotate invitations.
-              </p>
+              <p className="controls-permission-note">Only admins can manage invites.</p>
             ) : null}
           </div>
         </section>
 
         <section className="controls-settings-section" aria-labelledby="people-section-title">
           <div className="controls-section-intro">
-            <span className="controls-section-icon">
-              <Users size={18} aria-hidden="true" />
-            </span>
-            <h2 id="people-section-title">People and roles</h2>
-            <p>New invitees join as members. The team owner remains an admin.</p>
+            <h2 id="people-section-title">Members</h2>
           </div>
           <div className="controls-section-content">
-            <label htmlFor="sample-role-preview">Preview sample role</label>
-            <select
-              id="sample-role-preview"
-              value={state.actingMemberId}
-              onChange={(event) => {
-                const result = dispatch({
-                  type: "preview-as",
-                  memberId: event.currentTarget.value,
-                });
-                update(result.message);
-              }}
-              aria-describedby="role-preview-help"
-            >
-              {state.members.map((member) => (
-                <option key={member.id} value={member.id}>
-                  {member.name} · {member.role}
-                </option>
-              ))}
-            </select>
-            <p id="role-preview-help" className="controls-field-help">
-              Preview only. It does not sign in, create an account, or grant access.
-            </p>
-
             <div className="controls-member-list">
               {state.members.map((member) => {
                 const isOwner = member.role === "admin";
                 const isSelf = member.id === actor?.id;
                 const askingToRemove = confirmRemoveId === member.id;
-                const avatar =
-                  member.name === "Sam" || member.name === "Sri" ? (
-                    <Avatar name={member.name} small />
-                  ) : (
-                    <span className="avatar avatar-small controls-avatar" aria-hidden="true">
-                      {member.name.slice(0, 2).toUpperCase()}
-                    </span>
-                  );
+                const avatar = <MemberAvatar {...member} small />;
                 return (
                   <div className="controls-member-row" key={member.id}>
                     {avatar}
                     <div className="controls-member-main">
                       <strong>{member.name}</strong>
-                      <span>
-                        {isOwner
-                          ? "Team owner · role locked"
-                          : "Joined through the reusable sample invitation"}
-                      </span>
                     </div>
                     <span className={`controls-role-pill controls-role-${member.role}`}>
                       {member.role}
                     </span>
                     {isOwner ? (
-                      <span className="controls-locked-role">
+                      <span
+                        className="controls-locked-role"
+                        title="The team owner cannot be removed"
+                      >
                         <LockKeyhole size={13} aria-hidden="true" />
-                        Owner locked
                       </span>
                     ) : askingToRemove ? (
                       <span className="controls-button-row controls-member-confirm">
@@ -310,34 +239,35 @@ export function Settings() {
                 );
               })}
             </div>
-            <p className="controls-role-rule">
-              {canAdmin
-                ? "Only the sample admin can remove a member. Invited people join as members, and the team owner cannot be removed or reassigned."
-                : "Member role cannot remove teammates, manage invitations, or approve another member’s device."}
-            </p>
+            <label htmlFor="sample-role-preview">Preview sample role</label>
+            <select
+              id="sample-role-preview"
+              value={state.actingMemberId}
+              onChange={(event) => {
+                const result = dispatch({
+                  type: "preview-as",
+                  memberId: event.currentTarget.value,
+                });
+                update(result.message);
+              }}
+            >
+              {state.members.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name} · {member.role}
+                </option>
+              ))}
+            </select>
           </div>
         </section>
 
         <section className="controls-settings-section" aria-labelledby="sharing-section-title">
           <div className="controls-section-intro">
-            <span className="controls-section-icon">
-              <ShieldCheck size={18} aria-hidden="true" />
-            </span>
-            <h2 id="sharing-section-title">Sharing and privacy</h2>
-            <p>
-              Your sharing is off by default. Opt in for this repository, pause your capture, or
-              keep your own session private.
-            </p>
+            <h2 id="sharing-section-title">Sharing</h2>
           </div>
           <div className="controls-section-content">
             <div className="controls-sharing-toggle">
               <div>
-                <strong>Your opt-in for {state.repositoryName}</strong>
-                <p>
-                  {sharingEnabled
-                    ? "Your sample sessions are opted in for this repository."
-                    : "Off. Your new sample sessions are not eligible for sharing."}
-                </p>
+                <strong>Share my sessions in {state.repositoryName}</strong>
               </div>
               <label className="controls-switch" htmlFor="sample-sharing-enabled">
                 <span>{sharingEnabled ? "On" : "Off"}</span>
@@ -358,10 +288,7 @@ export function Settings() {
 
             <div className="controls-sharing-pause">
               <div>
-                <strong>
-                  {sharingPaused ? "Your sharing is paused" : "Pause your future sharing"}
-                </strong>
-                <p>Pausing affects your future capture. Existing sample history is unchanged.</p>
+                <strong>{sharingPaused ? "Sharing is paused" : "Pause sharing"}</strong>
               </div>
               <button
                 type="button"
@@ -381,11 +308,7 @@ export function Settings() {
             </div>
 
             <fieldset className="controls-private-sessions">
-              <legend>Private sample sessions</legend>
-              <p>
-                Only a session’s owner can change its privacy. Private sessions stay excluded even
-                while sharing is enabled.
-              </p>
+              <legend>Private sessions</legend>
               {samplePrivateSessionOptions.map((session) => {
                 const ownerId = session.id === "sample-sam" ? "sam" : "sri";
                 const checked = privateSessions.includes(session.id);
@@ -414,48 +337,18 @@ export function Settings() {
                     <span
                       className={`controls-state-pill ${checked ? "controls-state-private" : "controls-state-eligible"}`}
                     >
-                      {checked
-                        ? "Private"
-                        : canChangePrivacy
-                          ? "Eligible if sharing is on"
-                          : "Owner only"}
+                      {checked ? "Private" : canChangePrivacy ? "Shared" : "Owner only"}
                     </span>
                   </label>
                 );
               })}
             </fieldset>
 
-            <div className="controls-disclosure" aria-labelledby="sharing-disclosure-title">
-              <div className="controls-disclosure-heading">
-                <LockKeyhole size={17} aria-hidden="true" />
-                <h3 id="sharing-disclosure-title">What the planned sharing flow includes</h3>
-              </div>
-              <ul>
-                <li>
-                  Visible prompts and responses, bounded tool excerpts, and bounded diff excerpts.
-                </li>
-                <li>
-                  Shared content is intended for Supabase team storage; approved overlap context may
-                  be processed by Jev.
-                </li>
-                <li>
-                  History uses a sliding storage window with oldest eligible sessions removed when
-                  capacity thresholds require cleanup; there is no fixed age cutoff.
-                </li>
-                <li>
-                  Raw secrets, environment variables, hidden reasoning, unrelated files, and
-                  complete terminal history are excluded.
-                </li>
-              </ul>
-              <p>
-                This is a product disclosure example. The sample does not capture or upload real
-                session content.
-              </p>
-            </div>
-            <p className="controls-permission-note">
-              This preference applies to {actor?.name ?? "the current member"} only. It does not
-              change another member’s capture choices.
-            </p>
+            <ul className="controls-share-facts">
+              <li>Shared: prompts, responses, and short tool and diff excerpts.</li>
+              <li>Stored in Supabase team storage. Overlap context may be processed by Jev.</li>
+              <li>Never shared: secrets, env vars, hidden reasoning, or unrelated files.</li>
+            </ul>
           </div>
         </section>
 
@@ -464,11 +357,7 @@ export function Settings() {
           aria-labelledby="reset-section-title"
         >
           <div className="controls-section-intro">
-            <span className="controls-section-icon">
-              <RotateCcw size={18} aria-hidden="true" />
-            </span>
             <h2 id="reset-section-title">Reset sample data</h2>
-            <p>Restore the original synthetic team, invitations, devices, and session fixtures.</p>
           </div>
           <div className="controls-section-content">
             {confirmReset ? (

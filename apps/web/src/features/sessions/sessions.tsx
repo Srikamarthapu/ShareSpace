@@ -2,31 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Bot,
-  FileCode2,
-  GitBranch,
-  Info,
-  Search,
-  ShieldAlert,
-  Trash2,
-} from "lucide-react";
-import { Avatar, CopyButton, EmptyState } from "@/components/ui";
-import {
-  sampleSessions,
-  filterSessions,
-  formatActivityAge,
-  type Agent,
-  type Builder,
-} from "../workspace/session-model";
-import { HistoryNavigation, SampleLabel } from "../history/history-navigation";
+import { ArrowLeft, MoreHorizontal } from "lucide-react";
+import { Avatar, CopyButton, MemberAvatar } from "@/components/ui";
+import { sampleSessions, filterSessions, formatActivityAge } from "../workspace/session-model";
 import {
   eventAnchorPageStart,
   getSampleHistoryEvents,
   sampleObservationAt,
-  sampleObservationLabel,
   isSampleSessionAccessRevoked,
   isSampleSessionDeleted,
   TRANSCRIPT_PAGE_SIZE,
@@ -41,87 +23,58 @@ import {
   setSampleStreamStatus,
   useSampleHistory,
 } from "../history/history-store";
-import styles from "../history/history.module.css";
+import styles from "./transcript.module.css";
 import { sharingForMember, useWorkspaceControls } from "../workspace-controls/store";
 
-function streamStatusCopy(status: StreamStatus) {
-  if (status === "paused") return "Paused · sample updates are not being read.";
-  if (status === "unavailable") return "Unavailable · stored sample history remains readable.";
-  return "Ready · sample history is saved in this browser.";
-}
+const streamLabels: Record<StreamStatus, string> = {
+  connected: "Stream connected",
+  paused: "Stream paused",
+  unavailable: "Stream unavailable",
+};
 
 export function Sessions() {
   const { state } = useSampleHistory();
   const [query, setQuery] = useState("");
+  // filterSessions returns every teammate's sessions, newest activity first.
   const sessions = filterSessions(visibleSampleSessions(state), {
     builder: "all",
     agent: "all",
     query,
   });
+  const asOf = sampleObservationAt(state);
 
   return (
     <>
-      <div className="page-heading">
-        <div className="heading-copy">
-          <div className="eyebrow">SHARED, WITH INTENT</div>
-          <h1>Sessions</h1>
-          <p>A window into the work. Only the conversations you choose to share.</p>
-        </div>
+      <div className={styles.listHeader}>
+        <h1>Sessions</h1>
+        <input
+          className={styles.search}
+          type="search"
+          aria-label="Search sessions"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search…"
+        />
       </div>
-      <HistoryNavigation active="/sessions" />
-      <div className={styles.sampleBand}>
-        <Info size={16} aria-hidden="true" />
-        <span>
-          These scripted sessions live only in this browser. They do not represent live agent
-          activity or a shared account.
-        </span>
-      </div>
-      <div className="toolbar">
-        <label className="search-field">
-          <Search size={16} aria-hidden="true" />
-          <span className="sr-only">Search sessions</span>
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search builder, prompt, project, or branch…"
-          />
-        </label>
-        <span className="muted small">{sessions.length} sample sessions</span>
-      </div>
-      <div className="session-list">
+      <div className={styles.list}>
         {sessions.map((session) => (
-          <Link className="session-row" key={session.id} href={"/sessions/" + session.id}>
-            <Avatar name={session.owner} />
+          <Link className={styles.row} key={session.id} href={"/sessions/" + session.id}>
+            <Avatar name={session.owner} small />
             <div>
               <h2>{session.title}</h2>
               <p>
-                {session.owner} + {session.agent}{" "}
-                <span>
-                  · {session.repository} · {session.branch}
-                </span>
-              </p>
-              <p className="muted small">
-                Last activity{" "}
-                {formatActivityAge(session.lastActivityAt, sampleObservationAt(state))} at the{" "}
-                {sampleObservationLabel(state)} sample snapshot.
+                {session.owner} · {session.agent} · {session.branch}
               </p>
             </div>
-            <ArrowRight size={17} aria-hidden="true" />
+            <time dateTime={session.lastActivityAt}>
+              {formatActivityAge(session.lastActivityAt, asOf)}
+            </time>
           </Link>
         ))}
       </div>
       {!sessions.length && (
-        <EmptyState title={query ? "No matching sessions" : "No visible sample sessions"}>
-          {query
-            ? "Try another builder, agent, prompt, project, or branch."
-            : "Deleted or access-revoked sample history is hidden from this list."}
-        </EmptyState>
+        <p className={styles.empty}>{query ? "No matching sessions." : "No sessions yet."}</p>
       )}
-      <p className="understated-note">
-        Reconnect and pagination below exercise browser fixtures only. Real capture and cross-client
-        streaming are not connected.
-      </p>
     </>
   );
 }
@@ -146,6 +99,7 @@ export function SessionDetail({ id }: { id: string }) {
   const previousSessionRef = useRef(id);
   const handledHashRef = useRef("");
   const preserveScrollRef = useRef<{ id: string; top: number } | null>(null);
+  const menuRef = useRef<HTMLDetailsElement>(null);
 
   const allEvents = useMemo(() => getSampleHistoryEvents(id, state), [id, state]);
   const normalizedQuery = query.trim().toLowerCase();
@@ -162,6 +116,15 @@ export function SessionDetail({ id }: { id: string }) {
   const visibleEvents = filteredEvents.slice(visibleStart, visibleStart + TRANSCRIPT_PAGE_SIZE);
   const deleted = isSampleSessionDeleted(state, id);
   const revoked = isSampleSessionAccessRevoked(state, id);
+
+  useEffect(() => {
+    const closeMenu = (event: PointerEvent) => {
+      const menu = menuRef.current;
+      if (menu?.open && !menu.contains(event.target as Node)) menu.open = false;
+    };
+    document.addEventListener("pointerdown", closeMenu);
+    return () => document.removeEventListener("pointerdown", closeMenu);
+  }, []);
 
   useEffect(() => {
     const updateBottomState = () => {
@@ -243,73 +206,70 @@ export function SessionDetail({ id }: { id: string }) {
     preserveScrollRef.current = null;
   }, [visibleStart, visibleEvents]);
 
+  const backLink = (
+    <Link href="/sessions" className={styles.back}>
+      <ArrowLeft size={14} aria-hidden="true" />
+      Sessions
+    </Link>
+  );
+
   if (!session)
     return (
-      <>
-        <HistoryNavigation active="/sessions" />
-        <EmptyState title="Session not available">
-          This sample session is not part of the local fixture.{" "}
-          <Link href="/sessions">Return to sessions.</Link>
-        </EmptyState>
-      </>
+      <div className={styles.page}>
+        {backLink}
+        <section className={styles.statePanel}>
+          <h1>Session not found</h1>
+          <Link href="/sessions">Back to sessions</Link>
+        </section>
+      </div>
     );
 
   if (deleted)
     return (
-      <>
-        <HistoryNavigation active="/sessions" />
+      <div className={styles.page}>
+        {backLink}
         <section
-          className={styles.statusPanel + " " + styles.removed}
+          className={styles.statePanel}
           data-testid="removed-history"
           aria-labelledby="removed-title"
         >
-          <ShieldAlert size={22} aria-hidden="true" />
           <h2 id="removed-title">History removed</h2>
-          <p>
-            This sample session and its cached event content were removed from this browser. Related
-            warning details are hidden, and old event links stop here.
-          </p>
-          <div className={styles.crossLinks}>
-            <Link href="/sessions">
-              View remaining sessions <ArrowRight size={14} aria-hidden="true" />
-            </Link>
-            <Link href="/warnings">
-              Open warning feed <ArrowRight size={14} aria-hidden="true" />
-            </Link>
-          </div>
-          <SampleLabel />
+          <p>This session was deleted. Old links to it end here.</p>
         </section>
-      </>
+      </div>
     );
 
   if (revoked)
     return (
-      <>
-        <HistoryNavigation active="/sessions" />
+      <div className={styles.page}>
+        {backLink}
         <section
-          className={styles.statusPanel + " " + styles.revoked}
+          className={styles.statePanel}
           data-testid="access-revoked"
           aria-labelledby="revoked-title"
         >
-          <ShieldAlert size={22} aria-hidden="true" />
           <h2 id="revoked-title">Access revoked</h2>
-          <p>
-            This sample review state hides the session while access is unavailable. It is separate
-            from history that was deleted.
-          </p>
+          <p>You no longer have access to this session.</p>
           <button
-            className={styles.featureButton}
+            className={styles.textButton}
             type="button"
             onClick={() => setSampleSessionAccessRevoked(id, false)}
           >
             Restore sample access
           </button>
         </section>
-      </>
+      </div>
     );
 
   const isOwnSession = session.owner === currentOwner;
-  const activeSession = session.id === "sample-sri";
+  const sharing = sharingForMember(controls, session.owner.toLowerCase());
+  const sharingLabel = sharing.privateSessions.includes(id)
+    ? "Private"
+    : sharing.sharingPaused
+      ? "Paused"
+      : sharing.sharingEnabled
+        ? "On"
+        : "Off";
   const eventsForCopy = visibleEvents
     .map((event) => event.role + ": " + event.content)
     .join("\n\n");
@@ -340,160 +300,89 @@ export function SessionDetail({ id }: { id: string }) {
 
   function changeStreamStatus(status: StreamStatus) {
     const saved = setSampleStreamStatus(status);
-    setActionMessage(
-      saved
-        ? streamStatusCopy(status)
-        : "The sample stream state could not be saved in this browser.",
-    );
+    setActionMessage(saved ? "" : "Could not save the stream state in this browser.");
   }
 
   function reconnect() {
     const result = reconnectSampleStream(id);
     if (!result) {
-      setCatchupMessage(
-        "Recovery is unavailable for this sample session or local browser storage.",
-      );
+      setCatchupMessage("Reconnect is unavailable.");
       return;
     }
     setCatchupMessage(
       result.added
-        ? "Recovered " +
-            result.added +
-            " sample event" +
-            (result.added === 1 ? "" : "s") +
-            " into saved browser history."
-        : "No new events. " +
+        ? "Recovered " + result.added + " event" + (result.added === 1 ? "" : "s") + "."
+        : "No new events. Skipped " +
             result.duplicates +
-            " repeated sample " +
-            (result.duplicates === 1 ? "delivery was" : "deliveries were") +
-            " deduplicated by stable event ID.",
+            " duplicate" +
+            (result.duplicates === 1 ? "" : "s") +
+            ".",
     );
   }
 
+  const observedAt = sampleObservationAt(state);
+  const ownerMember = controls.members.find((member) => member.name === session.owner);
+  const otherSessions = visibleSampleSessions(state).filter(
+    (item) => item.owner === session.owner && item.id !== id,
+  );
+
   return (
-    <>
-      <Link href="/sessions" className="back-link">
-        <ArrowLeft size={15} aria-hidden="true" />
-        All sessions
-      </Link>
-      <HistoryNavigation active="/sessions" />
-      <div className="page-heading">
-        <div>
-          <div className="eyebrow">SAMPLE SESSION</div>
-          <h1>{session.title}</h1>
-          <p>
-            {session.owner} + {session.agent}{" "}
-            <span className="inline-branch">
-              <GitBranch size={13} aria-hidden="true" />
-              {session.branch}
-            </span>
-          </p>
-          <p className="muted small">
-            Last activity {formatActivityAge(session.lastActivityAt, sampleObservationAt(state))} at
-            the {sampleObservationLabel(state)} sample snapshot.
-          </p>
-        </div>
-      </div>
-      <div className={styles.sampleBand}>
-        <Info size={16} aria-hidden="true" />
-        <span>
-          Sample transcript only. No agent is connected and no new live activity is being received.
-        </span>
-      </div>
-      <div className={styles.warningDetailGrid}>
-        <section aria-label="Session transcript">
-          <div className={styles.toolbar}>
-            <label>
-              <span className="sr-only">Search this sample transcript</span>
-              <input
-                type="search"
-                placeholder="Find in this session…"
-                value={query}
-                onChange={(event) => {
-                  setQuery(event.target.value);
-                  setRequestedStart(null);
-                }}
-              />
-            </label>
-            <label>
-              <span className="sr-only">Filter transcript event type</span>
-              <select
-                value={kind}
-                onChange={(event) => {
-                  setKind(event.target.value);
-                  setRequestedStart(null);
-                }}
-              >
-                <option value="all">All event types</option>
-                <option value="user">User prompts</option>
-                <option value="assistant">Agent responses</option>
-                <option value="tool">Tool events</option>
-              </select>
-            </label>
+    <div className={styles.detailLayout}>
+      <div className={styles.page}>
+        {backLink}
+        <header className={styles.header}>
+          <div>
+            <h1>{session.title}</h1>
+            <p className={styles.meta}>
+              {session.owner} · {session.agent} · {session.branch} ·{" "}
+              {formatActivityAge(session.lastActivityAt, sampleObservationAt(state))}
+            </p>
           </div>
-          <p className={styles.eventCount} role="status">
-            {filteredEvents.length} matching sample events · ordered by observed time
-          </p>
-          {visibleStart > 0 && (
-            <div className={styles.pagination}>
-              <button className={styles.featureButton} type="button" onClick={loadOlder}>
-                Load older events
-              </button>
-              <span>
-                Showing {visibleStart + 1}–
-                {Math.min(visibleStart + TRANSCRIPT_PAGE_SIZE, filteredEvents.length)} of{" "}
-                {filteredEvents.length}
-              </span>
-            </div>
-          )}
-          <div className={styles.eventScroller}>
-            {visibleEvents.map((event) => (
-              <EventCard key={event.id} event={event} owner={session.owner} agent={session.agent} />
-            ))}
-          </div>
-          {!visibleEvents.length && (
-            <EmptyState title="No events found">
-              Change the search or event-type filter to see more.
-            </EmptyState>
-          )}
-          {newEvents && (
-            <div className={styles.newEvents}>
-              <button type="button" onClick={jumpToLatest}>
-                New sample events · Jump to latest
-              </button>
-            </div>
-          )}
-          <div className="section-spacing">
-            <div className={styles.streamPanel}>
-              <span
-                className={
-                  styles.streamStatus +
-                  (state.streamStatus === "connected" ? "" : " " + styles[state.streamStatus])
-                }
-              >
-                Sample stream · {state.streamStatus}
-              </span>
-              <h2>Recover missed sample activity</h2>
-              <p>
-                {streamStatusCopy(state.streamStatus)} Reconnect reads this fixture’s persisted
-                catch-up batch and deduplicates its stable IDs.
-              </p>
-              <div className={styles.buttonRow}>
-                <button className={styles.featureButton} type="button" onClick={reconnect}>
-                  Reconnect and catch up
-                </button>
-              </div>
-              {catchupMessage && (
-                <p role="status" data-testid="catchup-result">
-                  {catchupMessage}
-                </p>
-              )}
-              {actionMessage && <p role="status">{actionMessage}</p>}
-              <details className={styles.reviewDisclosure}>
-                <summary>Sample lab controls</summary>
-                <div className={styles.reviewDisclosureContent}>
+          <div className={styles.tools}>
+            <input
+              className={styles.search}
+              type="search"
+              aria-label="Search this session"
+              placeholder="Find…"
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setRequestedStart(null);
+              }}
+            />
+            <select
+              className={styles.select}
+              aria-label="Filter transcript event type"
+              value={kind}
+              onChange={(event) => {
+                setKind(event.target.value);
+                setRequestedStart(null);
+              }}
+            >
+              <option value="all">All</option>
+              <option value="user">Prompts</option>
+              <option value="assistant">Responses</option>
+              <option value="tool">Tools</option>
+            </select>
+            <details className={styles.menu} ref={menuRef}>
+              <summary aria-label="Session menu">
+                <MoreHorizontal size={16} aria-hidden="true" />
+              </summary>
+              <div className={styles.menuPanel}>
+                <dl>
+                  <dt>Repository</dt>
+                  <dd>{session.repository}</dd>
+                  <dt>Sharing</dt>
+                  <dd>{sharingLabel}</dd>
+                  <dt>Files</dt>
+                  <dd>{session.files.join(", ")}</dd>
+                </dl>
+                <CopyButton value={eventsForCopy} label="Copy transcript" />
+                <div className={styles.menuDivider} />
+                <details>
+                  <summary>Sample lab controls</summary>
                   <fieldset>
-                    <legend>Persisted fixture state</legend>
+                    <legend>Stream state</legend>
                     {(
                       [
                         ["connected", "Ready"],
@@ -501,182 +390,214 @@ export function SessionDetail({ id }: { id: string }) {
                         ["unavailable", "Unavailable"],
                       ] as const
                     ).map(([value, label]) => (
-                      <label className={styles.radioChoice} key={value}>
+                      <label key={value}>
                         <input
                           type="radio"
                           name="sample-stream-state"
                           value={value}
                           checked={state.streamStatus === value}
                           onChange={() => changeStreamStatus(value)}
-                        />
+                        />{" "}
                         {label}
                       </label>
                     ))}
                   </fieldset>
-                  <p>These controls change only the sample fixture saved in this browser.</p>
                   <button
-                    className={styles.featureButton}
+                    className={styles.textButton}
                     type="button"
                     onClick={() => setSampleSessionAccessRevoked(id, true)}
                   >
                     Simulate access revoked
                   </button>
-                </div>
-              </details>
-            </div>
+                </details>
+                {isOwnSession &&
+                  (!confirmDelete ? (
+                    <button
+                      className={styles.textButton + " " + styles.danger}
+                      type="button"
+                      onClick={() => setConfirmDelete(true)}
+                    >
+                      Delete my sample session
+                    </button>
+                  ) : (
+                    <div role="group" aria-label="Confirm deletion">
+                      <p>Delete this session and hide warnings that cite it?</p>
+                      <div className={styles.confirmRow}>
+                        <button
+                          className={styles.textButton + " " + styles.danger}
+                          type="button"
+                          onClick={() => {
+                            const removed = deleteOwnSampleSession(id, currentOwner);
+                            if (!removed) setActionMessage("Could not delete. Try again.");
+                            setConfirmDelete(false);
+                          }}
+                        >
+                          Confirm deletion
+                        </button>
+                        <button
+                          className={styles.textButton}
+                          type="button"
+                          onClick={() => setConfirmDelete(false)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </details>
           </div>
-          {isOwnSession && (
-            <section className={styles.deletePanel} aria-labelledby="delete-heading">
-              <h2 id="delete-heading">Remove your sample history</h2>
-              <p>
-                {activeSession
-                  ? "This sample session is protected from automatic cleanup while active. You can still manually delete your own stored copy."
-                  : "Manual deletion removes your stored sample transcript and hides linked warning context."}{" "}
-                The original local agent conversation and repository files are unaffected.
-              </p>
-              {!confirmDelete ? (
-                <button
-                  className={styles.dangerButton}
-                  type="button"
-                  onClick={() => setConfirmDelete(true)}
-                >
-                  <Trash2 size={15} aria-hidden="true" />
-                  Delete my sample session
-                </button>
-              ) : (
-                <div role="group" aria-label="Confirm sample history deletion">
-                  <p>
-                    This deletes “{session.title}” from this browser and hides warning details that
-                    cite it.
-                  </p>
-                  <div className={styles.buttonRow}>
-                    <button
-                      className={styles.dangerButton}
-                      type="button"
-                      onClick={() => {
-                        const removed = deleteOwnSampleSession(id, currentOwner);
-                        if (!removed)
-                          setActionMessage(
-                            "History could not be removed. Check browser storage access and try again.",
-                          );
-                        setConfirmDelete(false);
-                      }}
-                    >
-                      Confirm deletion
-                    </button>
-                    <button
-                      className={styles.featureButton}
-                      type="button"
-                      onClick={() => setConfirmDelete(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-            </section>
+        </header>
+
+        <section className={styles.transcript} aria-label="Session transcript">
+          {visibleStart > 0 && (
+            <button className={styles.older} type="button" onClick={loadOlder}>
+              Load older events
+            </button>
+          )}
+          {visibleEvents.map((event) => (
+            <TranscriptEvent key={event.id} event={event} />
+          ))}
+          {!visibleEvents.length && <p className={styles.empty}>No matching events.</p>}
+          {newEvents && (
+            <button className={styles.jump} type="button" onClick={jumpToLatest}>
+              Jump to latest ↓
+            </button>
           )}
         </section>
-        <aside className="detail-aside">
-          <h2>Session context</h2>
-          <dl>
-            <dt>Sharing</dt>
-            <dd>
-              {sharingForMember(controls, session.owner.toLowerCase()).privateSessions.includes(id)
-                ? "Private for future capture"
-                : sharingForMember(controls, session.owner.toLowerCase()).sharingPaused
-                  ? "Future sample sharing paused"
-                  : sharingForMember(controls, session.owner.toLowerCase()).sharingEnabled
-                    ? "Future sample sharing enabled"
-                    : "Future sample sharing off"}
-              . Stored sample history remains visible.
-            </dd>
-            <dt>Capture</dt>
-            <dd>{session.captureNote}</dd>
-            <dt>Repository</dt>
-            <dd>{session.repository}</dd>
-            <dt>Scope</dt>
-            <dd>{session.scope}</dd>
-            <dt>Files</dt>
-            <dd>
-              {session.files.map((file) => (
-                <code className="file-tag" key={file}>
-                  {file}
-                </code>
-              ))}
-            </dd>
-          </dl>
-          <CopyButton value={eventsForCopy} label="Copy visible transcript" />
-          <p className={styles.fixtureFootnote}>
-            Stable event anchors open the correct page even when an older event is outside the
-            newest page.
-          </p>
-          <div className={styles.crossLinks}>
-            <Link href="/warnings">
-              Warnings <ArrowRight size={14} aria-hidden="true" />
-            </Link>
-            <Link href="/storage">
-              History & storage <ArrowRight size={14} aria-hidden="true" />
-            </Link>
-          </div>
-        </aside>
+
+        <footer className={styles.statusBar}>
+          <span>
+            <span
+              className={
+                styles.streamDot +
+                (state.streamStatus === "connected" ? "" : " " + styles[state.streamStatus])
+              }
+              aria-hidden="true"
+            />
+            {streamLabels[state.streamStatus]}
+          </span>
+          <button className={styles.textButton} type="button" onClick={reconnect}>
+            Reconnect
+          </button>
+          {catchupMessage && (
+            <span role="status" data-testid="catchup-result">
+              {catchupMessage}
+            </span>
+          )}
+          {actionMessage && <span role="status">{actionMessage}</span>}
+        </footer>
       </div>
-    </>
+      <aside className={styles.owner} aria-label={session.owner + "’s profile"}>
+        <MemberAvatar
+          id={ownerMember?.id ?? session.owner.toLowerCase()}
+          name={session.owner}
+          githubLogin={ownerMember?.githubLogin}
+        />
+        <h2>{session.owner}</h2>
+        <p className={styles.ownerActive}>
+          Last active {formatActivityAge(session.lastActivityAt, observedAt).toLowerCase()}
+        </p>
+        <h3>Other sessions</h3>
+        {otherSessions.length ? (
+          <ul className={styles.ownerSessions}>
+            {otherSessions.map((item) => (
+              <li key={item.id}>
+                <Link href={"/sessions/" + item.id}>
+                  <strong>{item.title}</strong>
+                  <span>
+                    {item.branch} · {formatActivityAge(item.lastActivityAt, observedAt)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className={styles.ownerEmpty}>No other sessions from {session.owner} yet.</p>
+        )}
+      </aside>
+    </div>
   );
 }
 
-function EventCard({ event, owner, agent }: { event: HistoryEvent; owner: Builder; agent: Agent }) {
-  const icon =
-    event.role === "tool" ? (
-      <FileCode2 size={17} aria-hidden="true" />
-    ) : event.role === "assistant" ? (
-      <Bot size={17} aria-hidden="true" />
-    ) : (
-      <Avatar name={owner} small />
+function toolSummary(event: HistoryEvent) {
+  try {
+    const data: unknown = JSON.parse(event.content);
+    if (data && typeof data === "object") {
+      const record = data as Record<string, unknown>;
+      const paths = Array.isArray(record.relative_paths)
+        ? record.relative_paths.filter((path): path is string => typeof path === "string")
+        : typeof record.relative_path === "string"
+          ? [record.relative_path]
+          : typeof record.command === "string"
+            ? [record.command]
+            : [];
+      return {
+        name: typeof record.tool_name === "string" ? record.tool_name : "Tool",
+        input: paths.join(", ") || event.file || "",
+        output: typeof record.result_excerpt === "string" ? record.result_excerpt : "",
+      };
+    }
+  } catch {
+    // Non-JSON tool content is shown as plain output below.
+  }
+  return { name: "Tool", input: event.file ?? "", output: event.content };
+}
+
+function TranscriptEvent({ event }: { event: HistoryEvent }) {
+  const anchor = (
+    <a className={styles.anchor} href={"#" + event.id} aria-label={"Link to " + event.title}>
+      <time dateTime={event.occurredAt}>{event.time}</time>
+    </a>
+  );
+
+  if (event.role === "user")
+    return (
+      <article className={styles.event} id={event.id} data-history-event={event.id}>
+        {anchor}
+        <div className={styles.user}>{event.content}</div>
+      </article>
     );
-  const name =
-    event.role === "tool" ? "Sample tool activity" : event.role === "assistant" ? agent : owner;
-  return (
-    <article className={styles.eventCard} id={event.id} data-history-event={event.id}>
-      <header className={styles.eventHeader}>
-        {icon}
-        <strong>{name}</strong>
-        <time dateTime={event.occurredAt}>{event.time}</time>
-        <a
-          className={styles.eventAnchor}
-          href={"#" + event.id}
-          aria-label={"Link to " + event.title}
-        >
-          #
-        </a>
-      </header>
-      {event.role === "tool" ? (
-        <details>
-          <summary className={styles.toolSummary}>
-            {event.title} · {event.status}
-          </summary>
-          <div className={styles.eventBody}>
-            <pre>
-              <code>{event.content}</code>
-            </pre>
-          </div>
-        </details>
-      ) : (
-        <div className={styles.eventBody}>
-          <strong>{event.title}</strong>
-          <p>{event.content}</p>
+
+  if (event.role === "assistant")
+    return (
+      <article className={styles.event} id={event.id} data-history-event={event.id}>
+        {anchor}
+        <div className={styles.reply}>
+          <div className={styles.text}>{event.content}</div>
+          {event.truncated && <div className={styles.truncated}>Output truncated</div>}
         </div>
-      )}
-      <div className={styles.eventMeta}>
-        <span className={styles.marker}>Sample fixture event</span>
-        {event.role === "tool" && <span className={styles.marker}>Status: {event.status}</span>}
-        {event.redacted && <span className={styles.marker}>Redacted excerpt</span>}
-        {event.truncated && (
-          <span className={styles.marker + " " + styles.warning}>
-            Truncated · remaining output omitted
-          </span>
-        )}
-      </div>
+      </article>
+    );
+
+  const tool = toolSummary(event);
+  const statusClass =
+    event.status === "error"
+      ? styles.stepError
+      : event.status === "running"
+        ? styles.stepRunning
+        : styles.stepSuccess;
+  return (
+    <article className={styles.event} id={event.id} data-history-event={event.id}>
+      {anchor}
+      <details className={styles.step + " " + statusClass + " " + styles.tool}>
+        <summary>
+          <span className={styles.toolName}>{tool.name}</span>
+          <span className={styles.toolTarget}>{tool.input}</span>
+          {event.redacted && <span className={styles.tag}>redacted</span>}
+          {event.truncated && <span className={styles.tag}>truncated</span>}
+        </summary>
+        <div className={styles.ioBlock}>
+          {tool.input && (
+            <>
+              <span>IN</span>
+              <pre>{tool.input}</pre>
+            </>
+          )}
+          <span>OUT</span>
+          <pre>{tool.output || "(no output)"}</pre>
+        </div>
+      </details>
     </article>
   );
 }

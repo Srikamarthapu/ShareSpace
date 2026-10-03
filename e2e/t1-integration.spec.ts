@@ -19,11 +19,13 @@ test("privacy belongs to the selected member across settings and the dashboard",
   await page.goto("/sessions/sample-sri");
   await expect(page.getByRole("button", { name: "Delete my sample session" })).toHaveCount(0);
   await page.goto("/sessions/sample-sam");
+  await page.getByLabel("Session menu").click();
   await expect(page.getByRole("button", { name: "Delete my sample session" })).toBeVisible();
 });
 
 test("deletion clears dashboard context and reset restores the entire sample", async ({ page }) => {
   await page.goto("/sessions/sample-sri");
+  await page.getByLabel("Session menu").click();
   await page.getByRole("button", { name: "Delete my sample session" }).click();
   await page.getByRole("button", { name: "Confirm deletion" }).click();
   await expect(page.getByTestId("removed-history")).toBeVisible();
@@ -46,7 +48,7 @@ test("deletion clears dashboard context and reset restores the entire sample", a
   ).toBeVisible();
 });
 
-for (const route of ["/warnings", "/warnings/college-scope", "/storage", "/guide"]) {
+for (const route of ["/warnings", "/warnings/college-scope", "/settings/storage", "/guide"]) {
   test(`${route} is accessible and fits the viewport`, async ({ page }, testInfo) => {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));

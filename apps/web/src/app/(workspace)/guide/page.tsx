@@ -30,7 +30,7 @@ export default function Page() {
             Review the device, repository, and capture capabilities before approval. Claude Code and
             Codex use separate ShareSpace device credentials.
           </p>
-          <Link className="text-link" href="/connect">
+          <Link className="text-link" href="/settings/connections">
             Review connections <ArrowRight size={14} aria-hidden="true" />
           </Link>
         </section>
@@ -52,7 +52,7 @@ export default function Page() {
             Sharing starts off. Pause future uploads or keep a session private. Stored history uses
             a sliding window; a separate deletion removes your shared history.
           </p>
-          <Link className="text-link" href="/storage">
+          <Link className="text-link" href="/settings/storage">
             Review storage <ArrowRight size={14} aria-hidden="true" />
           </Link>
         </section>

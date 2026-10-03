@@ -167,7 +167,13 @@ test("mobile dashboard fits a 390px viewport without horizontal scrolling", asyn
   expect(width.scrollWidth).toBeLessThanOrEqual(width.clientWidth);
 });
 
-const supportingRoutes = ["/sessions", "/sessions/sample-sri", "/connect", "/settings", "/login"];
+const supportingRoutes = [
+  "/sessions",
+  "/sessions/sample-sri",
+  "/settings",
+  "/settings/connections",
+  "/login",
+];
 
 for (const route of supportingRoutes) {
   test(`${route} keeps its heading, dark theme, and accessible layout`, async ({ page }) => {

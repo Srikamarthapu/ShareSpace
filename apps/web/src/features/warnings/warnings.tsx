@@ -13,7 +13,7 @@ import {
   type SampleWarning,
   type WarningOutcome,
 } from "@/features/history/history-model";
-import { HistoryNavigation, SampleLabel } from "@/features/history/history-navigation";
+import { SampleLabel } from "@/features/history/history-navigation";
 import styles from "@/features/history/history.module.css";
 
 const outcomeLabels: Record<WarningOutcome, string> = {
@@ -141,7 +141,6 @@ export function WarningFeed() {
 
   return (
     <div className={styles.featureStack}>
-      <HistoryNavigation active="/warnings" />
       <WarningHeader
         title="Overlap warnings"
         description="Review the sample context behind each advisory check."
@@ -208,7 +207,6 @@ export function WarningDetail({ id }: { id: string }) {
 
   return (
     <div className={styles.featureStack}>
-      <HistoryNavigation active="/warnings" />
       <Link href="/warnings" className="back-link">
         <ArrowLeft size={15} aria-hidden="true" />
         All sample checks

@@ -18,12 +18,12 @@ test("session history paginates and a deep event link reveals an older event", a
 test("transcript search and event-type filters apply to the selected session", async ({ page }) => {
   await page.goto("/sessions/sample-sam");
   await page
-    .getByRole("searchbox", { name: "Search this sample transcript" })
+    .getByRole("searchbox", { name: "Search this session" })
     .fill("Redacted sample tool activity");
   await expect(page.locator('[data-history-event="sam-history-02"]')).toBeVisible();
   await expect(page.locator('[data-history-event="sam-history-01"]')).toHaveCount(0);
 
-  await page.getByRole("searchbox", { name: "Search this sample transcript" }).fill("");
+  await page.getByRole("searchbox", { name: "Search this session" }).fill("");
   await page.getByRole("combobox", { name: "Filter transcript event type" }).selectOption("user");
   await expect(page.locator('[data-history-event="sam-request"]')).toBeVisible();
   await expect(page.locator('[data-history-event="sam-history-01"]')).toHaveCount(0);
@@ -31,15 +31,17 @@ test("transcript search and event-type filters apply to the selected session", a
 
 test("reconnect persists fixture catch-up and suppresses repeated event IDs", async ({ page }) => {
   await page.goto("/sessions/sample-sam");
+  await page.getByLabel("Session menu").click();
   await page.getByText("Sample lab controls", { exact: true }).click();
   await page.getByRole("radio", { name: "Unavailable" }).check();
-  await expect(page.getByText("Sample stream · unavailable")).toBeVisible();
+  await page.getByLabel("Session menu").click();
+  await expect(page.getByText("Stream unavailable")).toBeVisible();
 
-  await page.getByRole("button", { name: "Reconnect and catch up" }).click();
-  await expect(page.getByTestId("catchup-result")).toContainText("Recovered 2 sample events");
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
+  await expect(page.getByTestId("catchup-result")).toContainText("Recovered 2 events");
   // Readers already at the bottom follow automatically. Otherwise the app
   // keeps their reading position and offers the explicit jump action.
-  const jumpToLatest = page.getByRole("button", { name: "New sample events · Jump to latest" });
+  const jumpToLatest = page.getByRole("button", { name: "Jump to latest" });
   await expect
     .poll(
       async () =>
@@ -51,10 +53,8 @@ test("reconnect persists fixture catch-up and suppresses repeated event IDs", as
   await expect(page.locator('[data-history-event="sam-catchup-01"]')).toBeVisible();
   await expect(page.locator('[data-history-event="sam-catchup-02"]')).toBeVisible();
 
-  await page.getByRole("button", { name: "Reconnect and catch up" }).click();
-  await expect(page.getByTestId("catchup-result")).toContainText(
-    "2 repeated sample deliveries were deduplicated",
-  );
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
+  await expect(page.getByTestId("catchup-result")).toContainText("Skipped 2 duplicates");
   await expect(page.locator('[data-history-event="sam-catchup-01"]')).toHaveCount(1);
 
   await page.reload();
@@ -63,6 +63,7 @@ test("reconnect persists fixture catch-up and suppresses repeated event IDs", as
 
 test("revoked access and deleted history render different states", async ({ page }) => {
   await page.goto("/sessions/sample-sam");
+  await page.getByLabel("Session menu").click();
   await page.getByText("Sample lab controls", { exact: true }).click();
   await page.getByRole("button", { name: "Simulate access revoked" }).click();
   await expect(page.getByTestId("access-revoked")).toContainText("Access revoked");
@@ -75,6 +76,7 @@ test("revoked access and deleted history render different states", async ({ page
   await expect(page.locator('[data-history-event="sam-history-16"]')).toBeVisible();
 
   await page.goto("/sessions/sample-sri");
+  await page.getByLabel("Session menu").click();
   await page.getByRole("button", { name: "Delete my sample session" }).click();
   await page.getByRole("button", { name: "Confirm deletion" }).click();
   await expect(page.getByTestId("removed-history")).toContainText("History removed");
@@ -89,6 +91,7 @@ test("deleting a personal session hides it from session history", async ({ page 
   await expect(page.getByRole("button", { name: "Delete my sample session" })).toHaveCount(0);
 
   await page.goto("/sessions/sample-sri");
+  await page.getByLabel("Session menu").click();
   await page.getByRole("button", { name: "Delete my sample session" }).click();
   await page.getByRole("button", { name: "Cancel" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Personal shortlist" })).toBeVisible();

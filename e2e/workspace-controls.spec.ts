@@ -73,10 +73,17 @@ test("reusable invite distinguishes full, rotated, and accepted sample joins", a
   await expect(main(page).getByText("Alex Morgan", { exact: true })).toBeVisible();
 });
 
+test("old connection and storage links open the new settings tabs", async ({ page }) => {
+  await page.goto("/connect");
+  await expect(page).toHaveURL(/\/settings\/connections$/);
+  await page.goto("/storage");
+  await expect(page).toHaveURL(/\/settings\/storage$/);
+});
+
 test("pairing consent and device revocation stay scoped to the requesting user", async ({
   page,
 }) => {
-  await page.goto("/connect");
+  await page.goto("/settings/connections");
   let content = main(page);
   const request = content.getByRole("article", { name: "Sam Codex pairing request" });
   await expect(request).toBeVisible();
@@ -90,7 +97,7 @@ test("pairing consent and device revocation stay scoped to the requesting user",
   await page.goto("/settings");
   content = main(page);
   await content.getByLabel("Preview sample role").selectOption("sam");
-  await page.goto("/connect");
+  await page.goto("/settings/connections");
   content = main(page);
   const samRequest = content.getByRole("article", { name: "Sam Codex pairing request" });
   await samRequest.getByRole("button", { name: "Approve sample device" }).click();
@@ -136,7 +143,7 @@ test("sharing is opt-in and private-session choices are personal", async ({ page
 test("settings, connection, setup, and join screens pass the accessibility scan", async ({
   page,
 }) => {
-  for (const route of ["/settings", "/connect", "/setup", "/join/invalid-token"]) {
+  for (const route of ["/settings", "/settings/connections", "/setup", "/join/invalid-token"]) {
     await page.goto(route);
     const content = main(page);
     await expect(content.getByRole("heading", { level: 1 }).first()).toBeVisible();
@@ -155,7 +162,7 @@ test("setup and settings have no horizontal overflow at the mobile viewport", as
   isMobile,
 }) => {
   test.skip(!isMobile, "Runs in the Chromium mobile viewport project.");
-  for (const route of ["/settings", "/connect", "/setup", "/join/invalid-token"]) {
+  for (const route of ["/settings", "/settings/connections", "/setup", "/join/invalid-token"]) {
     await page.goto(route);
     const width = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,
