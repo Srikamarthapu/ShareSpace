@@ -24,7 +24,8 @@
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "adapter": "npm run cli --workspace @workspace/adapter --"
+    "adapter": "npm run cli --workspace @workspace/adapter --",
+    "functions:serve": "supabase functions serve --env-file .env"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

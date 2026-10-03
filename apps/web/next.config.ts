@@ -1,4 +1,13 @@
+import { existsSync } from 'node:fs';
+import { loadEnvFile } from 'node:process';
+import { fileURLToPath } from 'node:url';
 import type { NextConfig } from 'next';
+
+// Next has already loaded the app environment here. Its env loader caches that
+// directory, so use Node's loader for the shared root file without overriding
+// existing deployment variables or apps/web/.env.local values.
+const rootEnvFile = fileURLToPath(new URL('../../.env', import.meta.url));
+if (existsSync(rootEnvFile)) loadEnvFile(rootEnvFile);
 
 const config: NextConfig = {
   // Keep agent instructions in the repository's root AGENTS.md and CLAUDE.md.

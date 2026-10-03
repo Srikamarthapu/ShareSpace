@@ -6,13 +6,13 @@ Use [PRD.md](../PRD.md) for the resolved v1 scope. It places the application bac
 
 ## Supabase
 
-Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `apps/web/.env.local`. The server uses verified auth, cookie refresh, and user-scoped queries. `/login` supports existing accounts; `/live` reads real projects. Project creation, invitations, device authorization, and connecting the collaborative UI remain pending.
+Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in the root `.env`. The server uses verified auth, cookie refresh, and user-scoped queries. `/login` supports existing accounts; `/live` reads real projects. Project creation, invitations, device authorization, and connecting the collaborative UI remain pending.
 
 The database work is documented in `DATABASE.md` when present. Review its migration/test status before applying to an external project. No existing cloud database was changed.
 
 ## Vercel
 
-Import this private GitHub repository into Vercel and set **Root Directory: `apps/web`**. Enable inclusion of source files outside the root directory so npm workspaces can resolve `packages/*`. `apps/web/vercel.json` runs install/build from the monorepo root. Use separate development/preview/production variables, and set `APP_URL` to the exact deployment origin when using Stripe. No deployment has been created or verified yet.
+The existing Vercel project uses **Root Directory: `apps/web`** with source files outside the root directory available so npm workspaces can resolve `packages/*`. `apps/web/vercel.json` runs install/build from the monorepo root. Use separate development/preview/production variables, and set `APP_URL` to the exact deployment origin when using Stripe. See [WEB_RELEASE.md](WEB_RELEASE.md) for the verified teammate 1 preview and its exact source revision; it is not evidence for later merged changes.
 
 Official reference: [Vercel monorepos](https://vercel.com/docs/monorepos).
 

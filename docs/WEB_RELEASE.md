@@ -4,6 +4,8 @@
 
 Use the pinned Node 22.22.3 and npm 10.9.8, then run `npm ci` and `npm run dev` at the repository root. The sample workspace works without environment variables. The active local review server uses `http://127.0.0.1:3100` with Webpack.
 
+For new local service setup, copy the root `.env.example` to `.env`. Next's app environment files and existing shell/deployment values take precedence; existing `apps/web/.env.local` setups continue to work. The root file supplies only missing values and remains ignored by Git and Vercel uploads.
+
 Sample settings, devices, invitations, and history are browser-local fixtures. They never authorize a real account or invoke a backend mutation. The authenticated `/login` and `/live` paths use the separate Supabase client.
 
 ## Supabase authentication

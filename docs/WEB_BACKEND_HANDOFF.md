@@ -2,6 +2,8 @@
 
 This note records the minimum contract Teammate 1 needs from Teammate 2 to connect browser flows to the ShareSpace v1 backend. It derives requirements from the [PRD](../PRD.md) and [ownership split](WORK_SPLIT.md); it does not choose endpoint names, payload shapes, or database types.
 
+The merged teammate 2 branch now supplies a draft in [CONTRACT.md](CONTRACT.md), with schemas and fixtures in `packages/core/src/v1.ts` and `v1-fixtures.ts`. That is a shared contract foundation, not a deployed schema or endpoint implementation. Its sample-to-contract differences remain explicit; the browser has not been switched to live endpoints by the merge.
+
 ## Current boundary
 
 - The browser must use the authenticated Supabase user for RLS-protected reads and authorized Realtime subscriptions. Current user-scoped reads remain separate from the sample workspace.
