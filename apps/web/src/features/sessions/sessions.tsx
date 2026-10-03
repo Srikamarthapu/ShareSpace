@@ -6,9 +6,12 @@ import {
   ArrowLeft,
   ArrowRight,
   Bot,
+  ChevronRight,
   FileCode2,
   GitBranch,
   Info,
+  Link2,
+  LockKeyhole,
   Search,
   ShieldAlert,
   Trash2,
@@ -42,6 +45,7 @@ import {
   useSampleHistory,
 } from "../history/history-store";
 import styles from "../history/history.module.css";
+import chat from "./chat.module.css";
 import { sharingForMember, useWorkspaceControls } from "../workspace-controls/store";
 
 function streamStatusCopy(status: StreamStatus) {
@@ -401,7 +405,14 @@ export function SessionDetail({ id }: { id: string }) {
         </span>
       </div>
       <div className={styles.warningDetailGrid}>
-        <section aria-label="Session transcript">
+        <section className={chat.conversation} aria-label="Session transcript">
+          <div className={chat.conversationHeader}>
+            <h2>Conversation</h2>
+            <span className={chat.readOnly}>
+              <LockKeyhole size={12} aria-hidden="true" />
+              Read only
+            </span>
+          </div>
           <div className={styles.toolbar}>
             <label>
               <span className="sr-only">Search this sample transcript</span>
@@ -446,11 +457,13 @@ export function SessionDetail({ id }: { id: string }) {
               </span>
             </div>
           )}
-          <div className={styles.eventScroller}>
+          <ol className={chat.thread} aria-label="Conversation messages">
             {visibleEvents.map((event) => (
-              <EventCard key={event.id} event={event} owner={session.owner} agent={session.agent} />
+              <li className={chat.turn} key={event.id}>
+                <TranscriptMessage event={event} owner={session.owner} agent={session.agent} />
+              </li>
             ))}
-          </div>
+          </ol>
           {!visibleEvents.length && (
             <EmptyState title="No events found">
               Change the search or event-type filter to see more.
@@ -463,6 +476,10 @@ export function SessionDetail({ id }: { id: string }) {
               </button>
             </div>
           )}
+          <p className={chat.threadFooter}>
+            <LockKeyhole size={13} aria-hidden="true" />
+            Shared by {session.owner}. This transcript is read only.
+          </p>
           <div className="section-spacing">
             <div className={styles.streamPanel}>
               <span
@@ -625,58 +642,76 @@ export function SessionDetail({ id }: { id: string }) {
   );
 }
 
-function EventCard({ event, owner, agent }: { event: HistoryEvent; owner: Builder; agent: Agent }) {
-  const icon =
-    event.role === "tool" ? (
-      <FileCode2 size={17} aria-hidden="true" />
-    ) : event.role === "assistant" ? (
-      <Bot size={17} aria-hidden="true" />
-    ) : (
-      <Avatar name={owner} small />
-    );
-  const name =
-    event.role === "tool" ? "Sample tool activity" : event.role === "assistant" ? agent : owner;
+function TranscriptMessage({
+  event,
+  owner,
+  agent,
+}: {
+  event: HistoryEvent;
+  owner: Builder;
+  agent: Agent;
+}) {
+  const name = event.role === "user" ? owner : agent;
   return (
-    <article className={styles.eventCard} id={event.id} data-history-event={event.id}>
-      <header className={styles.eventHeader}>
-        {icon}
-        <strong>{name}</strong>
+    <article
+      className={`${chat.message} ${chat[event.role]}`}
+      id={event.id}
+      data-history-event={event.id}
+      data-message-role={event.role}
+      aria-label={`${name}: ${event.title}`}
+    >
+      <header className={chat.messageHeader}>
+        {event.role === "user" ? (
+          <Avatar name={owner} small />
+        ) : event.role === "assistant" ? (
+          <span className={chat.agentAvatar}>
+            <Bot size={16} aria-hidden="true" />
+          </span>
+        ) : null}
+        <strong>
+          {name}
+          {event.role === "tool" ? " · tool activity" : ""}
+        </strong>
         <time dateTime={event.occurredAt}>{event.time}</time>
         <a
-          className={styles.eventAnchor}
+          className={chat.anchor}
           href={"#" + event.id}
           aria-label={"Link to " + event.title}
+          title="Link to this message"
         >
-          #
+          <Link2 size={13} aria-hidden="true" />
         </a>
       </header>
       {event.role === "tool" ? (
-        <details>
-          <summary className={styles.toolSummary}>
-            {event.title} · {event.status}
+        <details className={chat.toolDisclosure}>
+          <summary className={chat.toolSummary}>
+            <ChevronRight size={13} className={chat.chevron} aria-hidden="true" />
+            <FileCode2 size={15} aria-hidden="true" />
+            <span className={chat.toolTitle}>{event.title}</span>
+            <span className={chat.toolStatus}>{event.status}</span>
           </summary>
-          <div className={styles.eventBody}>
+          <div className={chat.toolBody}>
+            {event.file && (
+              <p className={chat.toolFile}>
+                <code>{event.file}</code>
+              </p>
+            )}
             <pre>
               <code>{event.content}</code>
             </pre>
           </div>
         </details>
       ) : (
-        <div className={styles.eventBody}>
-          <strong>{event.title}</strong>
-          <p>{event.content}</p>
+        <p className={chat.bubble}>{event.content}</p>
+      )}
+      {(event.redacted || event.truncated) && (
+        <div className={chat.messageMeta}>
+          {event.redacted && <span>Redacted excerpt</span>}
+          {event.truncated && (
+            <span className={chat.truncated}>Truncated · remaining output omitted</span>
+          )}
         </div>
       )}
-      <div className={styles.eventMeta}>
-        <span className={styles.marker}>Sample fixture event</span>
-        {event.role === "tool" && <span className={styles.marker}>Status: {event.status}</span>}
-        {event.redacted && <span className={styles.marker}>Redacted excerpt</span>}
-        {event.truncated && (
-          <span className={styles.marker + " " + styles.warning}>
-            Truncated · remaining output omitted
-          </span>
-        )}
-      </div>
     </article>
   );
 }

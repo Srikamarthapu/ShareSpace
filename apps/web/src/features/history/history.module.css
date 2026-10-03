@@ -75,89 +75,6 @@
   font-size: 11px;
 }
 
-.eventScroller {
-  display: grid;
-  gap: 10px;
-  min-width: 0;
-}
-
-.eventCard {
-  scroll-margin-top: 22px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-}
-
-.eventCard:target {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 1px var(--accent-ring);
-}
-
-.eventHeader {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 46px;
-  padding: 8px 13px;
-  border-bottom: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.eventHeader > svg {
-  flex: 0 0 auto;
-  color: var(--muted-strong);
-}
-
-.eventHeader strong {
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.eventHeader time {
-  margin-left: auto;
-  font-variant-numeric: tabular-nums;
-}
-
-.eventAnchor {
-  min-width: 28px;
-  padding: 2px 5px;
-  border-radius: 4px;
-  color: var(--muted);
-  text-align: center;
-}
-
-.eventBody {
-  padding: 13px 15px 15px;
-  color: var(--ink-secondary);
-  font-size: 13px;
-  overflow-wrap: anywhere;
-}
-
-.eventBody pre {
-  margin: 10px 0 0;
-  font-size: 11px;
-}
-
-.toolSummary {
-  padding: 12px 15px;
-  color: var(--ink-secondary);
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.toolSummary:hover {
-  color: var(--primary);
-}
-
-.eventMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 0 15px 13px;
-}
-
 .marker {
   display: inline-flex;
   align-items: center;
@@ -679,14 +596,6 @@
   .areaNavLink {
     flex: 0 0 auto;
     padding-inline: 9px;
-  }
-
-  .eventHeader {
-    gap: 7px;
-  }
-
-  .eventHeader strong {
-    overflow-wrap: anywhere;
   }
 
   .pagination {

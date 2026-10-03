@@ -1,0 +1,231 @@
+.conversation {
+  min-width: 0;
+  padding-top: 24px;
+}
+.conversationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.conversationHeader h2 {
+  font-size: 14px;
+}
+.readOnly {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 780px;
+  margin: 24px auto;
+  padding: 0;
+  list-style: none;
+}
+.turn {
+  min-width: 0;
+}
+.message {
+  min-width: 0;
+  scroll-margin-top: 28px;
+  border-radius: 16px;
+}
+.message:target {
+  outline: 2px solid var(--primary);
+  outline-offset: 6px;
+}
+.user {
+  max-width: 88%;
+  margin-left: auto;
+}
+.assistant {
+  max-width: 94%;
+  margin-right: auto;
+}
+.messageHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.messageHeader strong {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 550;
+}
+.user .messageHeader {
+  justify-content: flex-end;
+}
+.messageHeader time {
+  font-variant-numeric: tabular-nums;
+}
+.agentAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-control);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--primary);
+}
+.anchor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  color: var(--muted);
+}
+.anchor:hover {
+  background: var(--surface-hover);
+  color: var(--ink);
+}
+.bubble {
+  padding: 17px 20px;
+  border-radius: 18px 18px 4px 18px;
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.assistant .bubble {
+  margin-left: 36px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 4px 18px 18px 18px;
+  background: var(--surface);
+}
+.messageMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+.assistant .messageMeta {
+  margin-left: 36px;
+}
+.user .messageMeta {
+  justify-content: flex-end;
+}
+.truncated {
+  color: var(--warning);
+}
+.tool {
+  margin-left: 36px;
+}
+.tool .messageHeader {
+  gap: 7px;
+  margin-bottom: 5px;
+}
+.tool .messageHeader strong {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 11px;
+}
+.toolDisclosure {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.toolSummary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 11px 14px;
+  color: var(--ink-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  list-style: none;
+}
+.toolSummary::-webkit-details-marker {
+  display: none;
+}
+.toolSummary:hover {
+  background: var(--surface-hover);
+}
+.toolTitle {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.chevron {
+  color: var(--muted);
+}
+.toolDisclosure[open] .chevron {
+  transform: rotate(90deg);
+}
+.toolStatus {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 10px;
+}
+.toolBody {
+  border-top: 1px solid var(--border);
+  padding: 12px 14px;
+}
+.toolBody pre {
+  margin: 0;
+  background: var(--canvas);
+  font-size: 12px;
+}
+.toolFile {
+  margin-bottom: 8px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.threadFooter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+@media (max-width: 760px) {
+  .thread {
+    gap: 24px;
+  }
+  .user {
+    max-width: 92%;
+  }
+  .assistant {
+    max-width: 100%;
+  }
+  .bubble {
+    padding: 14px 16px;
+  }
+  .tool {
+    margin-left: 12px;
+  }
+  .toolSummary {
+    flex-wrap: wrap;
+    gap: 7px;
+    padding: 10px 12px;
+  }
+  .toolTitle {
+    flex: 1;
+  }
+  .threadFooter {
+    align-items: flex-start;
+  }
+}
