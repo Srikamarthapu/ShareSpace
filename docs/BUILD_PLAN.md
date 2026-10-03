@@ -1,33 +1,26 @@
-# Proposed work split — review before committing to it
+# ShareSpace v1 implementation plan
 
-This is an initial proposal, pending PRD reconciliation.
+The product scope is defined by the [canonical PRD](../PRD.md); ownership is defined in [WORK_SPLIT.md](WORK_SPLIT.md). This plan sets delivery gates and evidence only. The repository is still a starter, so proposed flows are not implemented capabilities.
 
-## Builder A: workspace and product flow
+## Delivery gates
 
-- Own `apps/web/src/features`, UI tokens, navigation, and rendered accessibility checks.
-- Replace the separate sample store with authorized queries and mutations.
-- Build onboarding, invitations, settings, and check-resolution UX.
-- Prove loading, empty, error, permission-change, and stale states.
+| Gate | Teammate 1 — web | Teammate 2 — adapters and backend | Evidence to proceed |
+| --- | --- | --- | --- |
+| 0. Contract and compatibility | Review shared types and states; prepare web shell and labeled fixtures | Draft the core contract; test capture and warning-injection interfaces for the installed Claude Code and Codex versions | Reviewed contract; documented agent capabilities and limits |
+| 1. Accounts and connection | Sign-in, team setup, invitations, browser pairing approval | Minimal schema/RLS, team and invitation mutations, pairing, first ingestion path | Two independent accounts join; a real adapter event is visible only to authorized members |
+| 2. Shared sessions | Session viewer, search, pagination, live updates and recovery; sharing/device settings | Both adapters, redaction, bounded queue, retries, revocation and read recovery | Real supported sessions appear; reconnect has no duplicates; private activity stays unshared |
+| 3. Overlap warnings | Warning feed and details, evidence links, score meaning and unavailable state | Authorized context retrieval, Jev calls, validation, persistence and supported warning delivery | A deliberate overlap produces an attributable warning in the agent and dashboard; failed checks let work continue |
+| 4. Retention and walkthrough | Usage and cleanup UI, deletion state, accessibility, responsive checks, Vercel and E2E | Quotas, cleanup and capacity guard, deletion/access denial, upload pausing, Supabase deployment | Integrated two-person walkthrough covers real providers, access boundaries, storage and error cases |
 
-## Builder B: integration and backend
+Teammate 2 owns the backend critical path. Teammate 1 can build against labeled fixtures while the contract and endpoints take shape. Integrate the account/connection gate before broad UI polish. Synthetic hooks do not prove compatibility with either agent.
 
-- Own `apps/adapter`, `supabase`, ingestion, retrieval, and provider integration.
-- Prove the exact Claude Code hook version with a real prompt and tool event.
-- Add pairing, revocation, durable retry, heartbeats, and source snapshots.
-- Connect Jev, validate evidence, and deliver revision-bound context.
+## Completion evidence
 
-## Shared seam
+- Two independent accounts join the same team, approve devices, and share activity from the selected repository.
+- Claude Code and Codex sessions appear with capture limitations disclosed; rendered content matches events the tested adapters actually capture.
+- A Jev-backed overlap warning links to supporting activity. A provider failure is visibly unavailable and does not block coding.
+- Private or unlinked activity remains excluded. Revocation and membership removal deny later access and uploads. A known test secret is absent from payloads, stored content, and logs.
+- Retention cleanup and upload pausing hold under concurrent uploads; deleted history does not return through caches or retries. Actual database capacity is checked separately from per-person content allowances.
+- The final walkthrough verifies Vercel and Supabase together. Fixture-only checks do not satisfy real-provider acceptance.
 
-Review changes to `packages/core` together. Keep contracts small and merge them before both consumers change. Use task-sized branches and pull requests; no enforced CODEOWNERS until the teammate's GitHub handle is known.
-
-## Decide together next
-
-1. Reconcile the competing PRDs and select the first complete user journey.
-2. Confirm which agent, repository, sponsor features, and demo flow are mandatory.
-3. Decide whether Stripe is a sandbox demonstration or a product payment model; the current code implements only sandbox Checkout and receipts.
-4. Decide whether Gemini summaries are useful; Jev classification and Gemini summarization are distinct boundaries.
-5. Agree on ownership and acceptance criteria before extending the starter.
-
-## First integration gate
-
-A real submitted prompt is intercepted, a consented tool event appears for a second authenticated builder, a real evidence-backed decision is returned, and approved context reaches the actual agent. No fixture or mocked provider test satisfies this gate.
+Run `npm run check` for code changes, `npm run test:e2e` for workflow changes, and the database tests when changing migrations. Each owner supplies evidence for their area; both owners complete the final walkthrough.

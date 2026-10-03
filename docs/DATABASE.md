@@ -1,5 +1,7 @@
 # Database foundation (WIP)
 
+Use [PRD.md](../PRD.md) for the resolved v1 product scope. This database draft predates reconciliation and contains deferred task, source-index, resolution, handoff, and billing tables. Their presence does not make those features required; reconcile the schema through tested migrations before implementing v1.
+
 The database starter is authored in [supabase/schema.sql](../supabase/schema.sql). Supabase applies only files in supabase/migrations/; this draft still needs to be moved into a filename created by the CLI command supabase migration new workspace_foundation. The installed /opt/homebrew/bin/supabase process is terminated by macOS (exit 137) for --version, init, and migration new. Docker's daemon is unavailable. The local config is handwritten and the schema is not yet applied or CLI-validated.
 
 No cloud project or cloud migration is part of this starter. The seed file is empty. Once the CLI works and the schema is promoted to a migration, run supabase start, supabase db reset, and supabase test db locally.
