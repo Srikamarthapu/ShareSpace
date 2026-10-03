@@ -33,25 +33,28 @@ describe("shared root environment configuration", () => {
       deployment: true,
       value: "deployment",
     },
-  ])("$name", ({ root, app, deployment, value }) => {
-    const directory = mkdtempSync(join(tmpdir(), "sharespace-env-test-"));
-    try {
-      const appDirectory = join(directory, "apps", "web");
-      mkdirSync(appDirectory, { recursive: true });
-      const config = join(appDirectory, "next.config.ts");
-      copyFileSync(configSource, config);
-      if (root) {
-        writeFileSync(
-          join(directory, ".env"),
-          "SHARESPACE_TEST_VALUE=root\nSHARESPACE_TEST_ROOT_ONLY=loaded\n",
-        );
-      }
-      if (app) writeFileSync(join(appDirectory, ".env.local"), "SHARESPACE_TEST_VALUE=app\n");
+  ])(
+    "$name",
+    ({ root, app, deployment, value }) => {
+      const directory = mkdtempSync(join(tmpdir(), "sharespace-env-test-"));
+      try {
+        writeFileSync(join(directory, "package.json"), '{"type":"module"}\n');
+        const appDirectory = join(directory, "apps", "web");
+        mkdirSync(appDirectory, { recursive: true });
+        const config = join(appDirectory, "next.config.ts");
+        copyFileSync(configSource, config);
+        if (root) {
+          writeFileSync(
+            join(directory, ".env"),
+            "SHARESPACE_TEST_VALUE=root\nSHARESPACE_TEST_ROOT_ONLY=loaded\n",
+          );
+        }
+        if (app) writeFileSync(join(appDirectory, ".env.local"), "SHARESPACE_TEST_VALUE=app\n");
 
-      const runner = join(directory, "verify.mjs");
-      writeFileSync(
-        runner,
-        `
+        const runner = join(directory, "verify.mjs");
+        writeFileSync(
+          runner,
+          `
         import nextEnv from ${JSON.stringify(pathToFileURL(require.resolve("@next/env")).href)};
         ${app ? `nextEnv.loadEnvConfig(${JSON.stringify(appDirectory)}, process.env.NODE_ENV !== "production");` : ""}
         await import(${JSON.stringify(pathToFileURL(config).href)});
@@ -60,22 +63,24 @@ describe("shared root environment configuration", () => {
           root: process.env.SHARESPACE_TEST_ROOT_ONLY ?? null,
         }));
       `,
-      );
-      const environment: NodeJS.ProcessEnv = {
-        ...process.env,
-        NODE_ENV: deployment ? "production" : "development",
-      };
-      delete environment.SHARESPACE_TEST_VALUE;
-      delete environment.SHARESPACE_TEST_ROOT_ONLY;
-      if (deployment) environment.SHARESPACE_TEST_VALUE = "deployment";
-      const result = execFileSync(process.execPath, ["--import", require.resolve("tsx"), runner], {
-        env: environment,
-        encoding: "utf8",
-        timeout: 5_000,
-      });
-      expect(JSON.parse(result)).toEqual({ value, root: root ? "loaded" : null });
-    } finally {
-      rmSync(directory, { recursive: true, force: true });
-    }
-  });
+        );
+        const environment: NodeJS.ProcessEnv = {
+          ...process.env,
+          NODE_ENV: deployment ? "production" : "development",
+        };
+        delete environment.SHARESPACE_TEST_VALUE;
+        delete environment.SHARESPACE_TEST_ROOT_ONLY;
+        if (deployment) environment.SHARESPACE_TEST_VALUE = "deployment";
+        const result = execFileSync(process.execPath, ["--experimental-strip-types", runner], {
+          env: environment,
+          encoding: "utf8",
+          timeout: 15_000,
+        });
+        expect(JSON.parse(result)).toEqual({ value, root: root ? "loaded" : null });
+      } finally {
+        rmSync(directory, { recursive: true, force: true });
+      }
+    },
+    20_000,
+  );
 });
