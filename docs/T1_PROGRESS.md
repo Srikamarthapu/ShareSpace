@@ -2,7 +2,17 @@
 
 The dark ShareSpace design is approved and remains the web product baseline. This is a progress record, not a claim that the v1 release or live two-builder workflow is complete. See the [PRD](../PRD.md), [ownership split](WORK_SPLIT.md), [build plan](BUILD_PLAN.md), and [backend handoff](WEB_BACKEND_HANDOFF.md).
 
-## Current status
+## Production hosting — source `2ae4345`
+
+- Public URL: [sharespace-beta.vercel.app](https://sharespace-beta.vercel.app). Vercel reports deployment `dpl_49yDuP2Lw6RpHKopFPh3z5HFPb46` READY in production, and the domain resolves to that deployment.
+- `npm run check` passed lint, all workspace type checks, 75 unit tests, and the production build. The Vercel build also passed.
+- Public HTTP checks passed for home, login, and health; unauthenticated `GET /api/projects` returns 401. The health response explicitly reports `live_agent_ingestion: false`.
+- The rendered public sample workspace was inspected in the browser. `PLAYWRIGHT_BASE_URL=https://sharespace-beta.vercel.app npm run test:e2e -- --workers=2` passed 84 tests, with two intentionally skipped desktop instances of mobile-only overflow checks; both mobile equivalents passed. These cover sample workflows and unauthenticated auth boundaries, not live collaboration.
+- Production has only the existing Supabase public URL and publishable key. GitHub remains disabled; real backend/provider and multi-user verification are outstanding.
+- Upload manifest: 154 files, with no environment files, local sessions, generated output, or test artifacts. No runtime error records were returned by the deployment log scan. Production dependency audit: zero vulnerabilities; five development-tool package records trace to the same `braces` advisory in the ESLint dependency chain.
+- Deployment did not require application changes or a push/merge to `main`. Hosting notes are on `codex/vercel-hosting`.
+
+## Earlier integration status — source `a119f37`
 
 | Area | Status | Evidence and limit |
 | --- | --- | --- |
@@ -25,7 +35,7 @@ Verified source: `a119f37`.
 - `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3100 npm run test:e2e -- --workers=2`: 70 passed, two intentionally skipped desktop instances of mobile-only overflow checks.
 - Workflow coverage includes setup/invites, member and device ownership, sharing consent, private-session preferences, transcript browsing/recovery, revoked/deleted history, warning outcomes, storage states, sample reset, and the real-auth boundary.
 - Automated accessibility and responsive checks passed on the covered routes; desktop/mobile warning and dashboard screenshots were inspected. This does not establish complete accessibility certification.
-- The preview has Vercel Authentication protection. The first deployment was unexpectedly classified as production by Vercel despite `--target preview`; it was removed after the subsequent preview succeeded. No production release remains from this work.
+- The preview has Vercel Authentication protection. The first deployment was unexpectedly classified as production by Vercel despite `--target preview`; it was removed after the subsequent preview succeeded. This earlier checkpoint had no production release; current hosting is recorded above.
 
 ## Release checklist
 

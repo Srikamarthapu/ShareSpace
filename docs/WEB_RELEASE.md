@@ -23,13 +23,19 @@ An unknown provider status permits a retry; a confirmed disabled provider is sho
 
 ## Vercel
 
+- Current production: [sharespace-beta.vercel.app](https://sharespace-beta.vercel.app), deployment `dpl_49yDuP2Lw6RpHKopFPh3z5HFPb46`, source `2ae4345`, deployed October 3, 2026. The public domain is verified to point to this READY production deployment. Existing Vercel protection remains enabled for generated deployment URLs.
+- Production now has the existing ShareSpace Supabase public URL and publishable key. Auth is reachable, but GitHub remains disabled. Backend integration and a real multi-user walkthrough remain outstanding.
+- Current deployment verification is recorded in [`T1_PROGRESS.md`](T1_PROGRESS.md). The preview-only details below describe the earlier setup.
+
+### Earlier preview setup
+
 - Project: `sharespace` (`prj_EpVL3X4oJiAdZE380XvzAeunEzPP`).
 - Scope: `swis-projects-066d8b1d` (`team_hex9yJ9eRmm2MssNWmHqTAQ6`).
 - Root directory: `apps/web`; Next.js framework; project Node setting: `22.x`.
 - `apps/web/vercel.json` installs and builds from the monorepo root. Keep the workspace packages available outside the app root.
 - `.vercelignore` excludes credentials, macOS resource forks, generated output, local state, and test artifacts. A dry-run upload manifest must contain none of those files.
-- Only preview environment variables have been configured. The active protected preview is [sharespace-qh2lugwie](https://sharespace-qh2lugwie-swis-projects-066d8b1d.vercel.app), deployment `dpl_4hAUCH5BTEKkw7mkQCKnXKYworwu`, source `a119f37`.
-- The first deployment was classified as production despite the explicit preview target. A subsequent deployment correctly reported Preview (`target: null`, `productionUrl: null`); the unintended first deployment `dpl_J4NQbYxbnr5ovtudCpsFa2WNoyba` was removed. There is no production release from this work. Verify the returned environment on every deployment, especially for a new project.
+- At this earlier checkpoint, only preview environment variables had been configured. The protected preview is [sharespace-qh2lugwie](https://sharespace-qh2lugwie-swis-projects-066d8b1d.vercel.app), deployment `dpl_4hAUCH5BTEKkw7mkQCKnXKYworwu`, source `a119f37`.
+- The first deployment was classified as production despite the explicit preview target. A subsequent deployment correctly reported Preview (`target: null`, `productionUrl: null`); the unintended first deployment `dpl_J4NQbYxbnr5ovtudCpsFa2WNoyba` was removed. That preview checkpoint did not include a production release. Verify the returned environment on every deployment, especially for a new project.
 
 From the linked repository root, the verified CLI version and explicit preview target are:
 
