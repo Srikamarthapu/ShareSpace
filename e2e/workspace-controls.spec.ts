@@ -22,6 +22,11 @@ test("setup edits one sample team and one repository", async ({ page }) => {
 });
 
 test("reusable invite distinguishes full, rotated, and accepted sample joins", async ({ page }) => {
+  await page.goto("/join/missing-invite");
+  await expect(
+    main(page).getByRole("heading", { name: "This invitation is not valid." }),
+  ).toBeVisible();
+
   await page.goto("/settings");
   const content = main(page);
   await content.getByRole("button", { name: "Create reusable invite" }).click();
@@ -78,7 +83,7 @@ test("pairing consent and device revocation stay scoped to the requesting user",
   await expect(request.getByText("Sam (sam)")).toBeVisible();
   await expect(request.getByText("college-compass", { exact: true })).toHaveCount(2);
   await expect(request.getByText("partial", { exact: true })).toBeVisible();
-  await expect(request.getByText("unsupported", { exact: true })).toBeVisible();
+  await expect(request.getByText("unsupported", { exact: true })).toHaveCount(2);
   await expect(request.getByRole("button", { name: "Approve sample device" })).toBeDisabled();
   await expect(content.getByText("No device credential is generated here.")).toBeVisible();
 

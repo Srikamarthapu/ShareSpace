@@ -1,27 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, FolderGit2, ShieldCheck, Users } from "lucide-react";
 import { useWorkspaceControls } from "@/features/workspace-controls/store";
 
 export function Setup() {
   const { state, actor, dispatch } = useWorkspaceControls();
-  const [teamName, setTeamName] = useState(state.teamName);
-  const [repositoryName, setRepositoryName] = useState(state.repositoryName);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const canAdmin = actor?.role === "admin";
-
-  useEffect(() => {
-    setTeamName(state.teamName);
-    setRepositoryName(state.repositoryName);
-  }, [state.teamName, state.repositoryName]);
 
   function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
     setError("");
+    const formData = new FormData(event.currentTarget);
+    const teamName = String(formData.get("teamName") ?? "");
+    const repositoryName = String(formData.get("repositoryName") ?? "");
     const result = dispatch({ type: "save-setup", teamName, repositoryName });
     if (result.code === "invalid" || result.code === "forbidden") {
       setError(result.message);
@@ -52,19 +48,22 @@ export function Setup() {
             </div>
             <FolderGit2 size={19} aria-hidden="true" />
           </div>
-          <form className="controls-form" onSubmit={save}>
+          <form
+            className="controls-form"
+            key={`${state.teamName}|${state.repositoryName}`}
+            onSubmit={save}
+          >
             <div className="controls-form-field">
               <label htmlFor="sample-team-name">Team name</label>
               <input
                 id="sample-team-name"
                 name="teamName"
-                value={teamName}
-                onChange={(event) => setTeamName(event.currentTarget.value)}
+                defaultValue={state.teamName}
                 maxLength={64}
                 minLength={2}
                 required
                 aria-describedby="sample-team-name-help"
-                aria-invalid={Boolean(error && teamName.trim().length < 2)}
+                aria-invalid={Boolean(error)}
               />
               <p id="sample-team-name-help" className="controls-field-help">
                 2 to 64 characters. Sample changes stay in this browser.
@@ -75,15 +74,12 @@ export function Setup() {
               <input
                 id="sample-repository"
                 name="repositoryName"
-                value={repositoryName}
-                onChange={(event) => setRepositoryName(event.currentTarget.value)}
+                defaultValue={state.repositoryName}
                 maxLength={100}
                 pattern="[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)?"
                 required
                 aria-describedby="sample-repository-help"
-                aria-invalid={Boolean(
-                  error && !/^[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)?$/.test(repositoryName.trim()),
-                )}
+                aria-invalid={Boolean(error)}
               />
               <p id="sample-repository-help" className="controls-field-help">
                 Use one repository slug or owner/name. A second repository cannot be added in this
